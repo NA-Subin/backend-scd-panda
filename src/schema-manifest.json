@@ -1,0 +1,2508 @@
+{
+  "banks": {
+    "primaryKey": "row_key",
+    "rowCount": 15,
+    "columns": [
+      {
+        "field": "Bank",
+        "column": "bank",
+        "type": "TEXT"
+      },
+      {
+        "field": "BankID",
+        "column": "bank_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "BankName",
+        "column": "bank_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "BankShortName",
+        "column": "bank_short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "company": {
+    "primaryKey": "row_key",
+    "rowCount": 4,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "CardID",
+        "column": "card_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "History",
+        "column": "history",
+        "type": "JSONB"
+      }
+    ]
+  },
+  "companypayment": {
+    "primaryKey": "row_key",
+    "rowCount": 375,
+    "columns": [
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "customers_bigtruck": {
+    "primaryKey": "row_key",
+    "rowCount": 82,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegistrationCheck",
+        "column": "registration_check",
+        "type": "BOOLEAN"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "StatusCompany",
+        "column": "status_company",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketsName",
+        "column": "tickets_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "Price",
+        "column": "price",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "SystemStatus",
+        "column": "system_status",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "customers_gasstations": {
+    "primaryKey": "row_key",
+    "rowCount": 17,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "LastName",
+        "column": "last_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "ShortName",
+        "column": "short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketsName",
+        "column": "tickets_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "companyName",
+        "column": "company_name_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Price",
+        "column": "price",
+        "type": "JSONB"
+      },
+      {
+        "field": "SystemStatus",
+        "column": "system_status",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "customers_smalltruck": {
+    "primaryKey": "row_key",
+    "rowCount": 60,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Credit",
+        "column": "credit",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegistrationCheck",
+        "column": "registration_check",
+        "type": "BOOLEAN"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "StatusCompany",
+        "column": "status_company",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketsName",
+        "column": "tickets_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "SystemStatus",
+        "column": "system_status",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "customers_tickets": {
+    "primaryKey": "row_key",
+    "rowCount": 14,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketsName",
+        "column": "tickets_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "companyName",
+        "column": "company_name_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "creditTime",
+        "column": "credit_time_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "SystemStatus",
+        "column": "system_status",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "customers_transports": {
+    "primaryKey": "row_key",
+    "rowCount": 33,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketsName",
+        "column": "tickets_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "SystemStatus",
+        "column": "system_status",
+        "type": "TEXT"
+      },
+      {
+        "field": "companyName",
+        "column": "company_name_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "creditTime",
+        "column": "credit_time_2",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "deductibleincome": {
+    "primaryKey": "row_key",
+    "rowCount": 38,
+    "columns": [
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "StatusData",
+        "column": "status_data",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "depot_gas_stations": {
+    "primaryKey": "row_key",
+    "rowCount": 8,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "TEXT"
+      },
+      {
+        "field": "CBP",
+        "column": "cbp",
+        "type": "JSONB"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "OilWellNumber",
+        "column": "oil_well_number",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Products",
+        "column": "products",
+        "type": "JSONB"
+      },
+      {
+        "field": "Report",
+        "column": "report",
+        "type": "JSONB"
+      },
+      {
+        "field": "ShortName",
+        "column": "short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Stock",
+        "column": "stock",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "CheckTruck",
+        "column": "check_truck",
+        "type": "BOOLEAN"
+      },
+      {
+        "field": "Backyard",
+        "column": "backyard",
+        "type": "JSONB"
+      },
+      {
+        "field": "Gasstation",
+        "column": "gasstation",
+        "type": "BOOLEAN"
+      }
+    ]
+  },
+  "depot_oils": {
+    "primaryKey": "row_key",
+    "rowCount": 5,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Zone",
+        "column": "zone",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "depot_stock": {
+    "primaryKey": "row_key",
+    "rowCount": 6,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Products",
+        "column": "products",
+        "type": "JSONB"
+      },
+      {
+        "field": "Volume",
+        "column": "volume",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "employee_creditors": {
+    "primaryKey": "row_key",
+    "rowCount": 2,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "TEXT"
+      },
+      {
+        "field": "Credit",
+        "column": "credit",
+        "type": "TEXT"
+      },
+      {
+        "field": "IDCard",
+        "column": "id_card",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "lng",
+        "column": "lng",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "employee_drivers": {
+    "primaryKey": "row_key",
+    "rowCount": 16,
+    "columns": [
+      {
+        "field": "BankID",
+        "column": "bank_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "BankName",
+        "column": "bank_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Deposit",
+        "column": "deposit",
+        "type": "TEXT"
+      },
+      {
+        "field": "DrivingLicense",
+        "column": "driving_license",
+        "type": "TEXT"
+      },
+      {
+        "field": "DrivingLicenseExpiration",
+        "column": "driving_license_expiration",
+        "type": "TEXT"
+      },
+      {
+        "field": "DrivingLicensePicture",
+        "column": "driving_license_picture",
+        "type": "TEXT"
+      },
+      {
+        "field": "IDCard",
+        "column": "id_card",
+        "type": "TEXT"
+      },
+      {
+        "field": "Loan",
+        "column": "loan",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Password",
+        "column": "password",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "PointCost",
+        "column": "point_cost",
+        "type": "TEXT"
+      },
+      {
+        "field": "Position",
+        "column": "position",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "Salary",
+        "column": "salary",
+        "type": "TEXT"
+      },
+      {
+        "field": "Security",
+        "column": "security",
+        "type": "TEXT"
+      },
+      {
+        "field": "TelephoneBill",
+        "column": "telephone_bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "TripCost",
+        "column": "trip_cost",
+        "type": "TEXT"
+      },
+      {
+        "field": "TruckType",
+        "column": "truck_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "User",
+        "column": "user",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Phone-",
+        "column": "phone-",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "employee_officers": {
+    "primaryKey": "row_key",
+    "rowCount": 11,
+    "columns": [
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Password",
+        "column": "password",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "Position",
+        "column": "position",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rights",
+        "column": "rights",
+        "type": "TEXT"
+      },
+      {
+        "field": "User",
+        "column": "user",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "GasStation",
+        "column": "gas_station",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "expenseitems": {
+    "primaryKey": "row_key",
+    "rowCount": 40,
+    "columns": [
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "inspection": {
+    "primaryKey": "row_key",
+    "rowCount": 5,
+    "columns": [
+      {
+        "field": "Air",
+        "column": "air",
+        "type": "JSONB"
+      },
+      {
+        "field": "Brake",
+        "column": "brake",
+        "type": "JSONB"
+      },
+      {
+        "field": "Dates",
+        "column": "dates",
+        "type": "TEXT"
+      },
+      {
+        "field": "Electricity",
+        "column": "electricity",
+        "type": "JSONB"
+      },
+      {
+        "field": "Employee",
+        "column": "employee",
+        "type": "TEXT"
+      },
+      {
+        "field": "Gasoline",
+        "column": "gasoline",
+        "type": "JSONB"
+      },
+      {
+        "field": "Noise",
+        "column": "noise",
+        "type": "JSONB"
+      },
+      {
+        "field": "Oils",
+        "column": "oils",
+        "type": "JSONB"
+      },
+      {
+        "field": "RegHead",
+        "column": "reg_head",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegTail",
+        "column": "reg_tail",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Water",
+        "column": "water",
+        "type": "JSONB"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegHeadID",
+        "column": "reg_head_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "employee",
+        "column": "employee_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Trip",
+        "column": "trip",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "invoice": {
+    "primaryKey": "row_key",
+    "rowCount": 609,
+    "columns": [
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "Number",
+        "column": "number",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketName",
+        "column": "ticket_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketNo",
+        "column": "ticket_no",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketType",
+        "column": "ticket_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Transport",
+        "column": "transport",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "order": {
+    "primaryKey": "row_key",
+    "rowCount": 3866,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "CustomerType",
+        "column": "customer_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Date",
+        "column": "date",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "No",
+        "column": "no",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Product",
+        "column": "product",
+        "type": "JSONB"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketName",
+        "column": "ticket_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Trip",
+        "column": "trip",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "LastName",
+        "column": "last_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "ShortName",
+        "column": "short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate",
+        "column": "rate",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Travel",
+        "column": "travel",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "file_path",
+        "column": "file_path",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "positions": {
+    "primaryKey": "row_key",
+    "rowCount": 8,
+    "columns": [
+      {
+        "field": "BasicData",
+        "column": "basic_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "BigTruckData",
+        "column": "big_truck_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverData",
+        "column": "driver_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "FinancialData",
+        "column": "financial_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "GasStationData",
+        "column": "gas_station_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "OprerationData",
+        "column": "opreration_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "ReportData",
+        "column": "report_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "SmallTruckData",
+        "column": "small_truck_data",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "products": {
+    "primaryKey": "row_key",
+    "rowCount": 10,
+    "columns": [
+      {
+        "field": "Product_name",
+        "column": "product_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "SG",
+        "column": "sg",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "quotation": {
+    "primaryKey": "row_key",
+    "rowCount": 162,
+    "columns": [
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "Customer",
+        "column": "customer",
+        "type": "TEXT"
+      },
+      {
+        "field": "Date",
+        "column": "date",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "Employee",
+        "column": "employee",
+        "type": "TEXT"
+      },
+      {
+        "field": "Note",
+        "column": "note",
+        "type": "TEXT"
+      },
+      {
+        "field": "Product",
+        "column": "product",
+        "type": "JSONB"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "Truck",
+        "column": "truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DateDelivery",
+        "column": "date_delivery",
+        "type": "TEXT"
+      },
+      {
+        "field": "selectedIndex",
+        "column": "selected_index",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "report_financial": {
+    "primaryKey": "row_key",
+    "rowCount": 352,
+    "columns": [
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "Date",
+        "column": "date",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Money",
+        "column": "money",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Note",
+        "column": "note",
+        "type": "TEXT"
+      },
+      {
+        "field": "Period",
+        "column": "period",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegHead",
+        "column": "reg_head",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegTail",
+        "column": "reg_tail",
+        "type": "TEXT"
+      },
+      {
+        "field": "ShortName",
+        "column": "short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "Type",
+        "column": "type",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehicleType",
+        "column": "vehicle_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Year",
+        "column": "year",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "report_invoice": {
+    "primaryKey": "row_key",
+    "rowCount": 1999,
+    "columns": [
+      {
+        "field": "Bank",
+        "column": "bank",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "Details",
+        "column": "details",
+        "type": "TEXT"
+      },
+      {
+        "field": "InvoiceID",
+        "column": "invoice_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Note",
+        "column": "note",
+        "type": "TEXT"
+      },
+      {
+        "field": "Price",
+        "column": "price",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "SelectedDateInvoice",
+        "column": "selected_date_invoice",
+        "type": "TEXT"
+      },
+      {
+        "field": "SelectedDateTransfer",
+        "column": "selected_date_transfer",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "Total",
+        "column": "total",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "TruckType",
+        "column": "truck_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Vat",
+        "column": "vat",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Path",
+        "column": "path",
+        "type": "TEXT"
+      },
+      {
+        "field": "Group",
+        "column": "group",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "tickets": {
+    "primaryKey": "row_key",
+    "rowCount": 1958,
+    "columns": [
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "JSONB"
+      },
+      {
+        "field": "Bill",
+        "column": "bill",
+        "type": "TEXT"
+      },
+      {
+        "field": "CodeID",
+        "column": "code_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "CustomerType",
+        "column": "customer_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Date",
+        "column": "date",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "No",
+        "column": "no",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "OrderID",
+        "column": "order_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Product",
+        "column": "product",
+        "type": "JSONB"
+      },
+      {
+        "field": "Rate1",
+        "column": "rate1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate2",
+        "column": "rate2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate3",
+        "column": "rate3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketName",
+        "column": "ticket_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Trip",
+        "column": "trip",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "Rate",
+        "column": "rate",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Travel",
+        "column": "travel",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "transfermoney": {
+    "primaryKey": "row_key",
+    "rowCount": 973,
+    "columns": [
+      {
+        "field": "BankName",
+        "column": "bank_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Code",
+        "column": "code",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "IncomingMoney",
+        "column": "incoming_money",
+        "type": "TEXT"
+      },
+      {
+        "field": "Note",
+        "column": "note",
+        "type": "TEXT"
+      },
+      {
+        "field": "Number",
+        "column": "number",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketName",
+        "column": "ticket_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "TicketNo",
+        "column": "ticket_no",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "TicketType",
+        "column": "ticket_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "Transport",
+        "column": "transport",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "month",
+        "column": "month",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "trip": {
+    "primaryKey": "row_key",
+    "rowCount": 1415,
+    "columns": [
+      {
+        "field": "CostTrip",
+        "column": "cost_trip",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DateDelivery",
+        "column": "date_delivery",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateReceive",
+        "column": "date_receive",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "Depot",
+        "column": "depot",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order1",
+        "column": "order1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "StatusTrip",
+        "column": "status_trip",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket1",
+        "column": "ticket1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket2",
+        "column": "ticket2",
+        "type": "TEXT"
+      },
+      {
+        "field": "TotalWeight",
+        "column": "total_weight",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "TruckType",
+        "column": "truck_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "WeightHigh",
+        "column": "weight_high",
+        "type": "TEXT"
+      },
+      {
+        "field": "WeightLow",
+        "column": "weight_low",
+        "type": "TEXT"
+      },
+      {
+        "field": "WeightTruck",
+        "column": "weight_truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Order2",
+        "column": "order2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order3",
+        "column": "order3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order4",
+        "column": "order4",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order5",
+        "column": "order5",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket3",
+        "column": "ticket3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket4",
+        "column": "ticket4",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEnd",
+        "column": "date_end",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order6",
+        "column": "order6",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order7",
+        "column": "order7",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order8",
+        "column": "order8",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket5",
+        "column": "ticket5",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket6",
+        "column": "ticket6",
+        "type": "TEXT"
+      },
+      {
+        "field": "WeightOil",
+        "column": "weight_oil",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DaetEnd",
+        "column": "daet_end",
+        "type": "TEXT"
+      },
+      {
+        "field": "order1",
+        "column": "order1_2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket7",
+        "column": "ticket7",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket8",
+        "column": "ticket8",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket10",
+        "column": "ticket10",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket9",
+        "column": "ticket9",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket11",
+        "column": "ticket11",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket12",
+        "column": "ticket12",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket13",
+        "column": "ticket13",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket14",
+        "column": "ticket14",
+        "type": "TEXT"
+      },
+      {
+        "field": "Tickets1",
+        "column": "tickets1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Tickets2",
+        "column": "tickets2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket15",
+        "column": "ticket15",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket16",
+        "column": "ticket16",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket17",
+        "column": "ticket17",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket18",
+        "column": "ticket18",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket19",
+        "column": "ticket19",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket20",
+        "column": "ticket20",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket21",
+        "column": "ticket21",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket22",
+        "column": "ticket22",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket23",
+        "column": "ticket23",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket24",
+        "column": "ticket24",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket25",
+        "column": "ticket25",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket26",
+        "column": "ticket26",
+        "type": "TEXT"
+      },
+      {
+        "field": "Ticket27",
+        "column": "ticket27",
+        "type": "TEXT"
+      },
+      {
+        "field": "Order9",
+        "column": "order9",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "truck_registration": {
+    "primaryKey": "row_key",
+    "rowCount": 13,
+    "columns": [
+      {
+        "field": "Act",
+        "column": "act",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndInsurance",
+        "column": "date_end_insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndTax",
+        "column": "date_end_tax",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Insurance",
+        "column": "insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "Path",
+        "column": "path",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegHead",
+        "column": "reg_head",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegTail",
+        "column": "reg_tail",
+        "type": "TEXT"
+      },
+      {
+        "field": "RepairTruck",
+        "column": "repair_truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "TotalWeight",
+        "column": "total_weight",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "VehExpirationDate",
+        "column": "veh_expiration_date",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehPicture",
+        "column": "veh_picture",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehicleRegistration",
+        "column": "vehicle_registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "Weight",
+        "column": "weight",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
+  "truck_registration_tail": {
+    "primaryKey": "row_key",
+    "rowCount": 11,
+    "columns": [
+      {
+        "field": "Cap",
+        "column": "cap",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Cap1",
+        "column": "cap1",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap2",
+        "column": "cap2",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap3",
+        "column": "cap3",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap4",
+        "column": "cap4",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap5",
+        "column": "cap5",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap6",
+        "column": "cap6",
+        "type": "TEXT"
+      },
+      {
+        "field": "Cap7",
+        "column": "cap7",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndInsurance",
+        "column": "date_end_insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndTax",
+        "column": "date_end_tax",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Insurance",
+        "column": "insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegTail",
+        "column": "reg_tail",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehPicture",
+        "column": "veh_picture",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehicleRegistration",
+        "column": "vehicle_registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "Weight",
+        "column": "weight",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Cap8",
+        "column": "cap8",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehExpirationDate",
+        "column": "veh_expiration_date",
+        "type": "TEXT"
+      },
+      {
+        "field": "Path",
+        "column": "path",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "truck_small": {
+    "primaryKey": "row_key",
+    "rowCount": 22,
+    "columns": [
+      {
+        "field": "Act",
+        "column": "act",
+        "type": "TEXT"
+      },
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndInsurance",
+        "column": "date_end_insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEndTax",
+        "column": "date_end_tax",
+        "type": "TEXT"
+      },
+      {
+        "field": "Driver",
+        "column": "driver",
+        "type": "TEXT"
+      },
+      {
+        "field": "Insurance",
+        "column": "insurance",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegHead",
+        "column": "reg_head",
+        "type": "TEXT"
+      },
+      {
+        "field": "RepairTruck",
+        "column": "repair_truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "ShortName",
+        "column": "short_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehExpirationDate",
+        "column": "veh_expiration_date",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehPicture",
+        "column": "veh_picture",
+        "type": "TEXT"
+      },
+      {
+        "field": "VehicleRegistration",
+        "column": "vehicle_registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "Weight",
+        "column": "weight",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "Path",
+        "column": "path",
+        "type": "TEXT"
+      },
+      {
+        "field": "StatusTruck",
+        "column": "status_truck",
+        "type": "TEXT"
+      }
+    ]
+  },
+  "truck_transport": {
+    "primaryKey": "row_key",
+    "rowCount": 2,
+    "columns": [
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "TEXT"
+      },
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "PassWord",
+        "column": "pass_word",
+        "type": "TEXT"
+      },
+      {
+        "field": "Registration",
+        "column": "registration",
+        "type": "TEXT"
+      },
+      {
+        "field": "RepairTruck",
+        "column": "repair_truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "Status",
+        "column": "status",
+        "type": "TEXT"
+      },
+      {
+        "field": "TruckType",
+        "column": "truck_type",
+        "type": "TEXT"
+      },
+      {
+        "field": "UserId",
+        "column": "user_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Weight",
+        "column": "weight",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  }
+}
