@@ -1,16 +1,18 @@
-# SCD Panda Backend
+# alysia
 
-Express + PostgreSQL API for the SCD Panda Oil Transport system, replacing the
-Firebase Realtime Database backend used by the frontend.
+ElysiaJS (Bun) + PostgreSQL API for the SCD Panda Oil Transport system,
+replacing the Firebase Realtime Database backend used by the frontend.
 
 ## Setup
 
 ```
-npm install
+bun install
 cp .env.example .env   # fill in real values
-npm run migrate-passwords   # one-time: bcrypt-hash plaintext passwords already in the DB
-npm run dev
+bun run migrate-passwords   # one-time: bcrypt-hash plaintext passwords already in the DB
+bun run dev
 ```
+
+Bun loads `.env` automatically — no `dotenv` package needed.
 
 ## Notes
 

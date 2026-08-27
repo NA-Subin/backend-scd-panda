@@ -1,16 +1,20 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-function verifyToken(req, res, next) {
-  const header = req.headers.authorization || '';
+// Verifies a "Bearer <token>" Authorization header and returns the decoded
+// JWT payload, or throws a 401 error (caught by Elysia's onError in server.js).
+export function requireAuth(headers) {
+  const header = headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'Missing token' });
-
+  if (!token) {
+    const err = new Error('Missing token');
+    err.status = 401;
+    throw err;
+  }
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    const err = new Error('Invalid or expired token');
+    err.status = 401;
+    throw err;
   }
 }
-
-module.exports = { verifyToken };

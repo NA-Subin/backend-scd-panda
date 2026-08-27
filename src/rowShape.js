@@ -1,7 +1,7 @@
 // Converts a flat array of DB rows (each with row_key + original-cased fields)
 // into the { [row_key]: {...fields} } shape the frontend expects (this is the
 // same shape Firebase Realtime Database returned for a list node).
-function rowsToKeyedObject(rows) {
+export function rowsToKeyedObject(rows) {
   const result = {};
   for (const row of rows) {
     const { row_key, ...fields } = row;
@@ -9,5 +9,3 @@ function rowsToKeyedObject(rows) {
   }
   return result;
 }
-
-module.exports = { rowsToKeyedObject };

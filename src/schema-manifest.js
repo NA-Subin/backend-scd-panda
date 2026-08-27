@@ -1,8 +1,8 @@
-const manifest = require('./schema-manifest.json');
+import manifest from './schema-manifest.json' with { type: 'json' };
 
-const TABLE_NAMES = Object.keys(manifest);
+export const TABLE_NAMES = Object.keys(manifest);
 
-function assertValidTable(table) {
+export function assertValidTable(table) {
   if (!TABLE_NAMES.includes(table)) {
     const err = new Error(`Unknown table "${table}"`);
     err.status = 404;
@@ -12,13 +12,13 @@ function assertValidTable(table) {
 }
 
 // Builds: SELECT "row_key", "col1" AS "OriginalField1", "col2" AS "OriginalField2", ...
-function selectColumnsSql(table) {
+export function selectColumnsSql(table) {
   const def = assertValidTable(table);
   const cols = def.columns.map((c) => `"${c.column}" AS "${c.field}"`);
   return ['"row_key"', ...cols].join(', ');
 }
 
-function assertValidColumns(table, fields) {
+export function assertValidColumns(table, fields) {
   const def = assertValidTable(table);
   const validFields = new Set(def.columns.map((c) => c.field));
   for (const field of fields) {
@@ -30,7 +30,7 @@ function assertValidColumns(table, fields) {
   }
 }
 
-function columnNameForField(table, field) {
+export function columnNameForField(table, field) {
   const def = assertValidTable(table);
   const col = def.columns.find((c) => c.field === field);
   return col ? col.column : null;
@@ -38,7 +38,7 @@ function columnNameForField(table, field) {
 
 // Reference/"basic data" tables consumed by the frontend's BasicDataProvider.
 // Keys match BasicDataProvider's state shape exactly.
-const BASIC_DATA_MAP = {
+export const BASIC_DATA_MAP = {
   company: 'company',
   positions: 'positions',
   officers: 'employee_officers',
@@ -62,12 +62,4 @@ const BASIC_DATA_MAP = {
   inspection: 'inspection',
 };
 
-module.exports = {
-  manifest,
-  TABLE_NAMES,
-  BASIC_DATA_MAP,
-  assertValidTable,
-  assertValidColumns,
-  selectColumnsSql,
-  columnNameForField,
-};
+export { manifest };

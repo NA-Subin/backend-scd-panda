@@ -1,15 +1,12 @@
-const express = require('express');
-const crypto = require('crypto');
-const { pool } = require('../db');
-const {
+import { Elysia } from 'elysia';
+import { pool } from '../db.js';
+import {
   assertValidTable,
   assertValidColumns,
   selectColumnsSql,
   columnNameForField,
-} = require('../schema-manifest');
-const { rowsToKeyedObject } = require('../rowShape');
-
-const router = express.Router();
+} from '../schema-manifest.js';
+import { rowsToKeyedObject } from '../rowShape.js';
 
 function columnTypeForField(def, field) {
   const col = def.columns.find((c) => c.field === field);
@@ -23,90 +20,77 @@ function toBoundValue(value, type) {
   return value;
 }
 
-router.get('/:table', async (req, res, next) => {
-  try {
-    const { table } = req.params;
+export const tablesRoutes = new Elysia()
+  .get('/api/:table', async ({ params: { table } }) => {
     assertValidTable(table);
     const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
-    res.json(rowsToKeyedObject(rows));
-  } catch (err) {
-    next(err);
-  }
-});
+    return rowsToKeyedObject(rows);
+  })
 
-router.get('/:table/:rowKey', async (req, res, next) => {
-  try {
-    const { table, rowKey } = req.params;
+  .get('/api/:table/:rowKey', async ({ params: { table, rowKey }, set }) => {
     assertValidTable(table);
     const { rows } = await pool.query(
       `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "row_key" = $1`,
       [rowKey]
     );
-    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    if (!rows.length) {
+      set.status = 404;
+      return { error: 'Not found' };
+    }
     const { row_key, ...fields } = rows[0];
-    res.json(fields);
-  } catch (err) {
-    next(err);
-  }
-});
+    return fields;
+  })
 
-router.post('/:table', async (req, res, next) => {
-  try {
-    const { table } = req.params;
+  .post('/api/:table', async ({ params: { table }, body, set }) => {
     const def = assertValidTable(table);
-    const body = req.body || {};
-    const fields = Object.keys(body).filter((f) => f !== 'row_key');
+    const record = body || {};
+    const fields = Object.keys(record).filter((f) => f !== 'row_key');
     assertValidColumns(table, fields);
 
-    const rowKey = body.row_key || crypto.randomUUID();
+    const rowKey = record.row_key || crypto.randomUUID();
     const columns = ['"row_key"', ...fields.map((f) => `"${columnNameForField(table, f)}"`)];
     const placeholders = fields.map((_, i) => `$${i + 2}`);
-    const values = [rowKey, ...fields.map((f) => toBoundValue(body[f], columnTypeForField(def, f)))];
+    const values = [rowKey, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
 
     await pool.query(
       `INSERT INTO "${table}" (${columns.join(', ')}) VALUES ($1, ${placeholders.join(', ')})`,
       values
     );
-    res.status(201).json({ row_key: rowKey });
-  } catch (err) {
-    next(err);
-  }
-});
+    set.status = 201;
+    return { row_key: rowKey };
+  })
 
-router.put('/:table/:rowKey', async (req, res, next) => {
-  try {
-    const { table, rowKey } = req.params;
+  .put('/api/:table/:rowKey', async ({ params: { table, rowKey }, body, set }) => {
     const def = assertValidTable(table);
-    const body = req.body || {};
-    const fields = Object.keys(body).filter((f) => f !== 'row_key');
+    const record = body || {};
+    const fields = Object.keys(record).filter((f) => f !== 'row_key');
     assertValidColumns(table, fields);
 
-    if (!fields.length) return res.status(400).json({ error: 'No fields to update' });
+    if (!fields.length) {
+      set.status = 400;
+      return { error: 'No fields to update' };
+    }
 
     const setClauses = fields.map((f, i) => `"${columnNameForField(table, f)}" = $${i + 2}`);
-    const values = [rowKey, ...fields.map((f) => toBoundValue(body[f], columnTypeForField(def, f)))];
+    const values = [rowKey, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
 
     const result = await pool.query(
       `UPDATE "${table}" SET ${setClauses.join(', ')} WHERE "row_key" = $1`,
       values
     );
-    if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
-    res.json({ ok: true });
-  } catch (err) {
-    next(err);
-  }
-});
+    if (!result.rowCount) {
+      set.status = 404;
+      return { error: 'Not found' };
+    }
+    return { ok: true };
+  })
 
-router.delete('/:table/:rowKey', async (req, res, next) => {
-  try {
-    const { table, rowKey } = req.params;
+  .delete('/api/:table/:rowKey', async ({ params: { table, rowKey }, set }) => {
     assertValidTable(table);
     const result = await pool.query(`DELETE FROM "${table}" WHERE "row_key" = $1`, [rowKey]);
-    if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
-    res.json({ ok: true });
-  } catch (err) {
-    next(err);
-  }
-});
-
-module.exports = router;
+    if (!result.rowCount) {
+      set.status = 404;
+      return { error: 'Not found' };
+    }
+    return { ok: true };
+  });

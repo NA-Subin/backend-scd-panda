@@ -1,24 +1,16 @@
-const express = require('express');
-const { pool } = require('../db');
-const { BASIC_DATA_MAP, selectColumnsSql } = require('../schema-manifest');
-const { rowsToKeyedObject } = require('../rowShape');
+import { Elysia } from 'elysia';
+import { pool } from '../db.js';
+import { BASIC_DATA_MAP, selectColumnsSql } from '../schema-manifest.js';
+import { rowsToKeyedObject } from '../rowShape.js';
 
-const router = express.Router();
-
-router.get('/', async (req, res, next) => {
-  try {
-    const keys = Object.keys(BASIC_DATA_MAP);
-    const results = await Promise.all(
-      keys.map(async (key) => {
-        const table = BASIC_DATA_MAP[key];
-        const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
-        return [key, rowsToKeyedObject(rows)];
-      })
-    );
-    res.json(Object.fromEntries(results));
-  } catch (err) {
-    next(err);
-  }
+export const basicDataRoutes = new Elysia().get('/api/basic-data', async () => {
+  const keys = Object.keys(BASIC_DATA_MAP);
+  const results = await Promise.all(
+    keys.map(async (key) => {
+      const table = BASIC_DATA_MAP[key];
+      const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
+      return [key, rowsToKeyedObject(rows)];
+    })
+  );
+  return Object.fromEntries(results);
 });
-
-module.exports = router;

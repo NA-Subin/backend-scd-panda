@@ -1,11 +1,9 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { pool } = require('../db');
-const { selectColumnsSql } = require('../schema-manifest');
-const { verifyToken } = require('../authMiddleware');
-
-const router = express.Router();
+import { Elysia } from 'elysia';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { pool } from '../db.js';
+import { selectColumnsSql } from '../schema-manifest.js';
+import { requireAuth } from '../authMiddleware.js';
 
 // Only officers/drivers carry User+Password columns in the source data;
 // creditors never had login credentials in the original Firebase data either.
@@ -36,11 +34,12 @@ async function findPosition(positionField) {
   return rows[0] || null;
 }
 
-router.post('/login', async (req, res, next) => {
-  try {
-    const { user, password } = req.body || {};
+export const authRoutes = new Elysia()
+  .post('/api/auth/login', async ({ body, set }) => {
+    const { user, password } = body || {};
     if (!user || !password) {
-      return res.status(400).json({ error: 'user and password are required' });
+      set.status = 400;
+      return { error: 'user and password are required' };
     }
 
     let matchedUser = null;
@@ -59,7 +58,8 @@ router.post('/login', async (req, res, next) => {
     }
 
     if (!matchedUser) {
-      return res.status(401).json({ error: 'User หรือ Password ไม่ถูกต้อง' });
+      set.status = 401;
+      return { error: 'User หรือ Password ไม่ถูกต้อง' };
     }
 
     const position = await findPosition(matchedUser.Position);
@@ -75,14 +75,7 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '30d' }
     );
 
-    res.json({ token, user: safeUser, entityType, accessRights });
-  } catch (err) {
-    next(err);
-  }
-});
+    return { token, user: safeUser, entityType, accessRights };
+  })
 
-router.get('/me', verifyToken, (req, res) => {
-  res.json(req.user);
-});
-
-module.exports = router;
+  .get('/api/auth/me', ({ headers }) => requireAuth(headers));

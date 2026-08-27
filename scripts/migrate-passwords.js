@@ -1,6 +1,5 @@
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const { pool } = require('../src/db');
+import bcrypt from 'bcryptjs';
+import { pool } from '../src/db.js';
 
 const TABLES = ['employee_officers', 'employee_drivers'];
 

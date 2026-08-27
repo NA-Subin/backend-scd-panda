@@ -1,28 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-
-const basicDataRoute = require('./routes/basicData');
-const tablesRoute = require('./routes/tables');
-const authRoute = require('./routes/auth');
-
-const app = express();
-
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(express.json());
-
-app.get('/health', (req, res) => res.json({ ok: true }));
-
-app.use('/api/basic-data', basicDataRoute);
-app.use('/api/auth', authRoute);
-app.use('/api', tablesRoute);
-
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
-});
+import { Elysia } from 'elysia';
+import { cors } from '@elysiajs/cors';
+import { basicDataRoutes } from './routes/basicData.js';
+import { tablesRoutes } from './routes/tables.js';
+import { authRoutes } from './routes/auth.js';
 
 const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`Backend listening on http://localhost:${port}`);
-});
+
+const app = new Elysia()
+  .use(cors({ origin: process.env.CORS_ORIGIN || '*' }))
+  .onError(({ error, set }) => {
+    console.error(error);
+    set.status = error.status || 500;
+    return { error: error.message || 'Internal server error' };
+  })
+  .get('/health', () => ({ ok: true }))
+  .use(basicDataRoutes)
+  .use(authRoutes)
+  .use(tablesRoutes)
+  .listen(port);
+
+console.log(`Backend listening on http://localhost:${port}`);
