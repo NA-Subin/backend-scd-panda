@@ -3,11 +3,18 @@ import { cors } from '@elysiajs/cors';
 import { basicDataRoutes } from './routes/basicData.js';
 import { tablesRoutes } from './routes/tables.js';
 import { authRoutes } from './routes/auth.js';
+import { adminRoutes } from './routes/admin.js';
 
 const port = process.env.PORT || 4000;
 
+// Comma-separated list in CORS_ORIGIN (e.g. multiple local dev ports).
+// Falls back to "*" only if CORS_ORIGIN is unset entirely.
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : '*';
+
 const app = new Elysia()
-  .use(cors({ origin: process.env.CORS_ORIGIN || '*' }))
+  .use(cors({ origin: corsOrigins }))
   .onError(({ error, set }) => {
     console.error(error);
     set.status = error.status || 500;
@@ -16,7 +23,9 @@ const app = new Elysia()
   .get('/health', () => ({ ok: true }))
   .use(basicDataRoutes)
   .use(authRoutes)
+  .use(adminRoutes)
   .use(tablesRoutes)
-  .listen(port);
+  // Firebase export JSON re-imports can be tens of MB; raise Bun's default body limit.
+  .listen({ port, maxRequestBodySize: 200 * 1024 * 1024 });
 
 console.log(`Backend listening on http://localhost:${port}`);

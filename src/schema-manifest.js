@@ -1,9 +1,25 @@
-import manifest from './schema-manifest.json' with { type: 'json' };
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export const TABLE_NAMES = Object.keys(manifest);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const MANIFEST_PATH = path.join(__dirname, 'schema-manifest.json');
+
+let manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+
+// Replaces the in-memory manifest (used right after a JSON re-import) and
+// persists it to disk so it survives a backend restart.
+export function setManifest(newManifest) {
+  manifest = newManifest;
+  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2), 'utf8');
+}
+
+export function getTableNames() {
+  return Object.keys(manifest);
+}
 
 export function assertValidTable(table) {
-  if (!TABLE_NAMES.includes(table)) {
+  if (!(table in manifest)) {
     const err = new Error(`Unknown table "${table}"`);
     err.status = 404;
     throw err;
@@ -61,5 +77,3 @@ export const BASIC_DATA_MAP = {
   quotation: 'quotation',
   inspection: 'inspection',
 };
-
-export { manifest };
