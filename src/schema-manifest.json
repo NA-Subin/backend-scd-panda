@@ -142,7 +142,7 @@
         "type": "NUMERIC"
       },
       {
-        "field": "CompanyName",
+        "field": "CompanyRefName",
         "column": "company_name",
         "type": "TEXT"
       },
@@ -379,7 +379,7 @@
         "type": "NUMERIC"
       },
       {
-        "field": "CompanyName",
+        "field": "CompanyRefName",
         "column": "company_name",
         "type": "TEXT"
       },

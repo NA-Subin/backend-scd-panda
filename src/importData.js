@@ -86,6 +86,7 @@ function classifyColumns(tableName, rows) {
   }
 
   const usedNames = new Set();
+  const fieldSet = new Set(fieldOrder);
   const columns = [];
 
   for (const field of fieldOrder) {
@@ -97,11 +98,15 @@ function classifyColumns(tableName, rows) {
         while (usedNames.has(`${idColumn}_${n}`)) n++;
         idColumn = `${idColumn}_${n}`;
       }
+      // A handful of tables already have a genuine, unrelated field named
+      // "{Field}Name" (e.g. customers_bigtruck.CompanyName is the customer's
+      // OWN company name, nothing to do with the Company FK) - don't shadow it.
+      const nameField = fieldSet.has(`${field}Name`) ? `${field}RefName` : `${field}Name`;
       const nameColumn = `${idColumn}_name`;
       usedNames.add(idColumn);
       usedNames.add(nameColumn);
-      columns.push({ field, column: idColumn, type: 'NUMERIC', fk: { target, addConstraint } });
-      columns.push({ field: `${field}Name`, column: nameColumn, type: 'TEXT' });
+      columns.push({ field, column: idColumn, type: 'NUMERIC', fk: { target, addConstraint }, fkNameField: nameField });
+      columns.push({ field: nameField, column: nameColumn, type: 'TEXT', isFkNameFor: field });
       continue;
     }
 
@@ -231,11 +236,10 @@ export function buildImportPlan(data) {
                 fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
               }
               vals.push(formatValue(idValue, 'NUMERIC'));
-            } else if (col.field.endsWith('Name') && FK_FIELDS[tableName]?.[col.field.slice(0, -4)]) {
-              // Companion "{Field}Name" column for a preceding FK field.
-              const baseField = col.field.slice(0, -4);
-              const parsed = parseIdName(record[baseField]);
-              const name = parsed ? parsed.name : record[baseField] ?? null;
+            } else if (col.isFkNameFor) {
+              // Companion text column for a preceding FK field.
+              const parsed = parseIdName(record[col.isFkNameFor]);
+              const name = parsed ? parsed.name : record[col.isFkNameFor] ?? null;
               vals.push(formatValue(name, 'TEXT'));
             } else {
               vals.push(formatValue(record[col.field], col.type));
