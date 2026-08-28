@@ -139,11 +139,16 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "NUMERIC"
       },
       {
         "field": "CompanyName",
         "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name_2",
         "type": "TEXT"
       },
       {
@@ -371,11 +376,16 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "NUMERIC"
       },
       {
         "field": "CompanyName",
         "column": "company_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name_2",
         "type": "TEXT"
       },
       {
@@ -745,6 +755,11 @@
       {
         "field": "Stock",
         "column": "stock",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "StockName",
+        "column": "stock_name",
         "type": "TEXT"
       },
       {
@@ -974,11 +989,21 @@
       {
         "field": "Position",
         "column": "position",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "PositionName",
+        "column": "position_name",
         "type": "TEXT"
       },
       {
         "field": "Registration",
         "column": "registration",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegistrationName",
+        "column": "registration_name",
         "type": "TEXT"
       },
       {
@@ -1045,6 +1070,11 @@
       {
         "field": "Position",
         "column": "position",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "PositionName",
+        "column": "position_name",
         "type": "TEXT"
       },
       {
@@ -1122,6 +1152,11 @@
       {
         "field": "Employee",
         "column": "employee",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "EmployeeName",
+        "column": "employee_name",
         "type": "TEXT"
       },
       {
@@ -1172,6 +1207,11 @@
       {
         "field": "employee",
         "column": "employee_2",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "employeeName",
+        "column": "employee_2_name",
         "type": "TEXT"
       },
       {
@@ -1269,6 +1309,11 @@
       {
         "field": "Driver",
         "column": "driver",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       },
       {
@@ -1309,6 +1354,11 @@
       {
         "field": "Registration",
         "column": "registration",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegistrationName",
+        "column": "registration_name",
         "type": "TEXT"
       },
       {
@@ -1442,6 +1492,11 @@
       {
         "field": "Company",
         "column": "company",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
         "type": "TEXT"
       },
       {
@@ -1462,6 +1517,11 @@
       {
         "field": "Employee",
         "column": "employee",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "EmployeeName",
+        "column": "employee_name",
         "type": "TEXT"
       },
       {
@@ -1518,6 +1578,11 @@
       {
         "field": "Driver",
         "column": "driver",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       },
       {
@@ -1543,11 +1608,21 @@
       {
         "field": "RegHead",
         "column": "reg_head",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegHeadName",
+        "column": "reg_head_name",
         "type": "TEXT"
       },
       {
         "field": "RegTail",
         "column": "reg_tail",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegTailName",
+        "column": "reg_tail_name",
         "type": "TEXT"
       },
       {
@@ -1589,11 +1664,21 @@
       {
         "field": "Bank",
         "column": "bank",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "BankName",
+        "column": "bank_name",
         "type": "TEXT"
       },
       {
         "field": "Company",
         "column": "company",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
         "type": "TEXT"
       },
       {
@@ -1710,6 +1795,11 @@
       {
         "field": "Driver",
         "column": "driver",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       },
       {
@@ -1755,6 +1845,11 @@
       {
         "field": "Registration",
         "column": "registration",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegistrationName",
+        "column": "registration_name",
         "type": "TEXT"
       },
       {
@@ -1796,6 +1891,11 @@
       {
         "field": "BankName",
         "column": "bank_name",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "BankNameName",
+        "column": "bank_name_name",
         "type": "TEXT"
       },
       {
@@ -1892,6 +1992,11 @@
       {
         "field": "Driver",
         "column": "driver",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       },
       {
@@ -1902,6 +2007,11 @@
       {
         "field": "Registration",
         "column": "registration",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegistrationName",
+        "column": "registration_name",
         "type": "TEXT"
       },
       {
@@ -2178,6 +2288,11 @@
       {
         "field": "Driver",
         "column": "driver",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       },
       {
@@ -2198,6 +2313,11 @@
       {
         "field": "RegTail",
         "column": "reg_tail",
+        "type": "NUMERIC"
+      },
+      {
+        "field": "RegTailName",
+        "column": "reg_tail_name",
         "type": "TEXT"
       },
       {

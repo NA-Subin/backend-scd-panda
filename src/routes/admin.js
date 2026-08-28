@@ -14,7 +14,7 @@ export const adminRoutes = new Elysia().post('/api/admin/import', async ({ heade
     return { error: 'Missing "data" (the Firebase export JSON) in request body' };
   }
 
-  const { sql, manifest, summary } = buildImportPlan(data);
+  const { sql, manifest, summary, fkSummary } = buildImportPlan(data);
 
   const client = await pool.connect();
   try {
@@ -36,5 +36,6 @@ export const adminRoutes = new Elysia().post('/api/admin/import', async ({ heade
     totalRows: summary.reduce((sum, t) => sum + t.rows, 0),
     summary,
     passwordsHashed: passwordResults,
+    fkReferencesNotResolved: fkSummary,
   };
 });
