@@ -1,6 +1,6 @@
 {
   "banks": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 15,
     "columns": [
       {
@@ -36,7 +36,7 @@
     ]
   },
   "company": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 4,
     "columns": [
       {
@@ -97,7 +97,7 @@
     ]
   },
   "companypayment": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 375,
     "columns": [
       {
@@ -118,7 +118,7 @@
     ]
   },
   "customers_bigtruck": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 82,
     "columns": [
       {
@@ -139,7 +139,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "CompanyRefName",
@@ -244,7 +244,7 @@
     ]
   },
   "customers_gasstations": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 17,
     "columns": [
       {
@@ -350,7 +350,7 @@
     ]
   },
   "customers_smalltruck": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 60,
     "columns": [
       {
@@ -376,7 +376,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "CompanyRefName",
@@ -461,7 +461,7 @@
     ]
   },
   "customers_tickets": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 14,
     "columns": [
       {
@@ -567,7 +567,7 @@
     ]
   },
   "customers_transports": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 33,
     "columns": [
       {
@@ -673,7 +673,7 @@
     ]
   },
   "deductibleincome": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 38,
     "columns": [
       {
@@ -709,7 +709,7 @@
     ]
   },
   "depot_gas_stations": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 8,
     "columns": [
       {
@@ -755,7 +755,7 @@
       {
         "field": "Stock",
         "column": "stock",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "StockName",
@@ -795,7 +795,7 @@
     ]
   },
   "depot_oils": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 5,
     "columns": [
       {
@@ -831,7 +831,7 @@
     ]
   },
   "depot_stock": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 6,
     "columns": [
       {
@@ -872,7 +872,7 @@
     ]
   },
   "employee_creditors": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 2,
     "columns": [
       {
@@ -923,7 +923,7 @@
     ]
   },
   "employee_drivers": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 16,
     "columns": [
       {
@@ -989,7 +989,7 @@
       {
         "field": "Position",
         "column": "position",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "PositionName",
@@ -999,7 +999,7 @@
       {
         "field": "Registration",
         "column": "registration",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegistrationName",
@@ -1049,7 +1049,7 @@
     ]
   },
   "employee_officers": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 11,
     "columns": [
       {
@@ -1070,7 +1070,7 @@
       {
         "field": "Position",
         "column": "position",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "PositionName",
@@ -1100,7 +1100,7 @@
     ]
   },
   "expenseitems": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 40,
     "columns": [
       {
@@ -1126,7 +1126,7 @@
     ]
   },
   "inspection": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 5,
     "columns": [
       {
@@ -1152,7 +1152,7 @@
       {
         "field": "Employee",
         "column": "employee",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "EmployeeName",
@@ -1207,7 +1207,7 @@
       {
         "field": "employee",
         "column": "employee_2",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "employeeName",
@@ -1222,7 +1222,7 @@
     ]
   },
   "invoice": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 609,
     "columns": [
       {
@@ -1268,7 +1268,7 @@
     ]
   },
   "order": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 3866,
     "columns": [
       {
@@ -1309,7 +1309,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "DriverName",
@@ -1354,7 +1354,7 @@
       {
         "field": "Registration",
         "column": "registration",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegistrationName",
@@ -1409,7 +1409,7 @@
     ]
   },
   "positions": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 8,
     "columns": [
       {
@@ -1465,7 +1465,7 @@
     ]
   },
   "products": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 10,
     "columns": [
       {
@@ -1481,7 +1481,7 @@
     ]
   },
   "quotation": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 162,
     "columns": [
       {
@@ -1492,7 +1492,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "CompanyName",
@@ -1517,7 +1517,7 @@
       {
         "field": "Employee",
         "column": "employee",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "EmployeeName",
@@ -1562,7 +1562,7 @@
     ]
   },
   "report_financial": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 352,
     "columns": [
       {
@@ -1578,7 +1578,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "DriverName",
@@ -1608,7 +1608,7 @@
       {
         "field": "RegHead",
         "column": "reg_head",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegHeadName",
@@ -1618,7 +1618,7 @@
       {
         "field": "RegTail",
         "column": "reg_tail",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegTailName",
@@ -1658,13 +1658,13 @@
     ]
   },
   "report_invoice": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 1999,
     "columns": [
       {
         "field": "Bank",
         "column": "bank",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "BankName",
@@ -1674,7 +1674,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "CompanyName",
@@ -1754,7 +1754,7 @@
     ]
   },
   "tickets": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 1958,
     "columns": [
       {
@@ -1795,7 +1795,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "DriverName",
@@ -1845,7 +1845,7 @@
       {
         "field": "Registration",
         "column": "registration",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegistrationName",
@@ -1885,13 +1885,13 @@
     ]
   },
   "transfermoney": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 973,
     "columns": [
       {
         "field": "BankName",
         "column": "bank_name",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "BankNameName",
@@ -1961,7 +1961,7 @@
     ]
   },
   "trip": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 1415,
     "columns": [
       {
@@ -1992,7 +1992,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "DriverName",
@@ -2007,7 +2007,7 @@
       {
         "field": "Registration",
         "column": "registration",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegistrationName",
@@ -2262,7 +2262,7 @@
     ]
   },
   "truck_registration": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 13,
     "columns": [
       {
@@ -2288,7 +2288,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "DriverName",
@@ -2313,7 +2313,7 @@
       {
         "field": "RegTail",
         "column": "reg_tail",
-        "type": "NUMERIC"
+        "type": "UUID"
       },
       {
         "field": "RegTailName",
@@ -2363,7 +2363,7 @@
     ]
   },
   "truck_registration_tail": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 11,
     "columns": [
       {
@@ -2479,7 +2479,7 @@
     ]
   },
   "truck_small": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 22,
     "columns": [
       {
@@ -2570,7 +2570,7 @@
     ]
   },
   "truck_transport": {
-    "primaryKey": "row_key",
+    "primaryKey": "uuid",
     "rowCount": 2,
     "columns": [
       {

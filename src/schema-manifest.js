@@ -27,11 +27,11 @@ export function assertValidTable(table) {
   return manifest[table];
 }
 
-// Builds: SELECT "row_key", "col1" AS "OriginalField1", "col2" AS "OriginalField2", ...
+// Builds: SELECT "uuid", "row_key", "col1" AS "OriginalField1", ...
 export function selectColumnsSql(table) {
   const def = assertValidTable(table);
   const cols = def.columns.map((c) => `"${c.column}" AS "${c.field}"`);
-  return ['"row_key"', ...cols].join(', ');
+  return ['"uuid"', '"row_key"', ...cols].join(', ');
 }
 
 export function assertValidColumns(table, fields) {

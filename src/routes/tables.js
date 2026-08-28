@@ -27,43 +27,43 @@ export const tablesRoutes = new Elysia()
     return rowsToKeyedObject(rows);
   })
 
-  .get('/api/:table/:rowKey', async ({ params: { table, rowKey }, set }) => {
+  .get('/api/:table/:uuid', async ({ params: { table, uuid }, set }) => {
     assertValidTable(table);
     const { rows } = await pool.query(
-      `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "row_key" = $1`,
-      [rowKey]
+      `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "uuid" = $1`,
+      [uuid]
     );
     if (!rows.length) {
       set.status = 404;
       return { error: 'Not found' };
     }
-    const { row_key, ...fields } = rows[0];
+    const { uuid: _uuid, row_key, ...fields } = rows[0];
     return fields;
   })
 
   .post('/api/:table', async ({ params: { table }, body, set }) => {
     const def = assertValidTable(table);
     const record = body || {};
-    const fields = Object.keys(record).filter((f) => f !== 'row_key');
+    const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
     assertValidColumns(table, fields);
 
-    const rowKey = record.row_key || crypto.randomUUID();
-    const columns = ['"row_key"', ...fields.map((f) => `"${columnNameForField(table, f)}"`)];
-    const placeholders = fields.map((_, i) => `$${i + 2}`);
-    const values = [rowKey, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
+    const uuid = crypto.randomUUID();
+    const columns = ['"uuid"', '"row_key"', ...fields.map((f) => `"${columnNameForField(table, f)}"`)];
+    const placeholders = fields.map((_, i) => `$${i + 3}`);
+    const values = [uuid, record.row_key || uuid, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
 
     await pool.query(
-      `INSERT INTO "${table}" (${columns.join(', ')}) VALUES ($1, ${placeholders.join(', ')})`,
+      `INSERT INTO "${table}" (${columns.join(', ')}) VALUES ($1, $2, ${placeholders.join(', ')})`,
       values
     );
     set.status = 201;
-    return { row_key: rowKey };
+    return { uuid };
   })
 
-  .put('/api/:table/:rowKey', async ({ params: { table, rowKey }, body, set }) => {
+  .put('/api/:table/:uuid', async ({ params: { table, uuid }, body, set }) => {
     const def = assertValidTable(table);
     const record = body || {};
-    const fields = Object.keys(record).filter((f) => f !== 'row_key');
+    const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
     assertValidColumns(table, fields);
 
     if (!fields.length) {
@@ -72,10 +72,10 @@ export const tablesRoutes = new Elysia()
     }
 
     const setClauses = fields.map((f, i) => `"${columnNameForField(table, f)}" = $${i + 2}`);
-    const values = [rowKey, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
+    const values = [uuid, ...fields.map((f) => toBoundValue(record[f], columnTypeForField(def, f)))];
 
     const result = await pool.query(
-      `UPDATE "${table}" SET ${setClauses.join(', ')} WHERE "row_key" = $1`,
+      `UPDATE "${table}" SET ${setClauses.join(', ')} WHERE "uuid" = $1`,
       values
     );
     if (!result.rowCount) {
@@ -85,9 +85,9 @@ export const tablesRoutes = new Elysia()
     return { ok: true };
   })
 
-  .delete('/api/:table/:rowKey', async ({ params: { table, rowKey }, set }) => {
+  .delete('/api/:table/:uuid', async ({ params: { table, uuid }, set }) => {
     assertValidTable(table);
-    const result = await pool.query(`DELETE FROM "${table}" WHERE "row_key" = $1`, [rowKey]);
+    const result = await pool.query(`DELETE FROM "${table}" WHERE "uuid" = $1`, [uuid]);
     if (!result.rowCount) {
       set.status = 404;
       return { error: 'Not found' };

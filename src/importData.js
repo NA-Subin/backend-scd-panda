@@ -3,19 +3,29 @@
 // schema manifest (column name mapping) and a row-count summary.
 //
 // This is the same logic used to build the original sql/scd-panda-dump.sql,
-// plus: a curated set of "id:name" fields (a workaround Firebase forced since
-// it has no real foreign keys) get split into a real numeric id column + a
-// companion "{Field}Name" text column, with an actual FK constraint added
-// where the target table's id is verifiably unique. The mapping below was
-// derived by cross-checking every "id:name"-shaped field in the real export
-// against every candidate table's identifying text field - fields that are
-// genuinely polymorphic (can point at different tables depending on the row,
-// e.g. TicketName/Customer/Order1-9/Ticket1-27) or that had no reliable
-// single target were deliberately left alone.
+// plus two additions on top of the raw Firebase shape:
+//
+// 1. Every row gets a freshly generated UUID as its real primary key (instead
+//    of the Firebase key or the human "id" number). Those aren't safe to rely
+//    on across sources - two independent Firebase projects/branches can both
+//    hand out row_key "5" or id=5 for completely different records, so if
+//    data from multiple sources is ever combined later, colliding on those
+//    would silently merge or overwrite unrelated rows. A UUID generated here
+//    doesn't have that problem. The original Firebase key is kept alongside
+//    as a plain "row_key" column for traceability, just no longer the PK.
+//
+// 2. A curated set of "id:name" fields (a workaround Firebase forced since it
+//    has no real foreign keys) get split into a real UUID FK column + a
+//    companion "{Field}Name" text column. The mapping below was derived by
+//    cross-checking every "id:name"-shaped field in the real export against
+//    every candidate table's identifying text field - fields that are
+//    genuinely polymorphic (can point at different tables depending on the
+//    row, e.g. TicketName/Customer/Order1-9/Ticket1-27) or that had no
+//    reliable single target were deliberately left alone.
 
 const NAMESPACE_NODES = new Set(['customers', 'depot', 'employee', 'report', 'truck']);
 
-// tableName -> { fieldName -> { target: tableName, addConstraint: boolean } }
+// tableName -> { fieldName -> { target: tableName } }
 const FK_FIELDS = {
   customers_bigtruck: { Company: { target: 'company' } },
   customers_smalltruck: { Company: { target: 'company' } },
@@ -32,9 +42,7 @@ const FK_FIELDS = {
   report_invoice: {
     // Misleadingly named in the source data - verified against real content.
     Bank: { target: 'expenseitems' },
-    // companypayment.id has duplicates in the source data, so this is split
-    // for clarity but not backed by a real UNIQUE/FK constraint.
-    Company: { target: 'companypayment', addConstraint: false },
+    Company: { target: 'companypayment' },
   },
   tickets: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
   transfermoney: { BankName: { target: 'banks' } },
@@ -91,7 +99,7 @@ function classifyColumns(tableName, rows) {
 
   for (const field of fieldOrder) {
     if (fkFields[field]) {
-      const { target, addConstraint = true } = fkFields[field];
+      const { target } = fkFields[field];
       let idColumn = toSnakeCase(field);
       if (usedNames.has(idColumn)) {
         let n = 2;
@@ -105,7 +113,7 @@ function classifyColumns(tableName, rows) {
       const nameColumn = `${idColumn}_name`;
       usedNames.add(idColumn);
       usedNames.add(nameColumn);
-      columns.push({ field, column: idColumn, type: 'NUMERIC', fk: { target, addConstraint }, fkNameField: nameField });
+      columns.push({ field, column: idColumn, type: 'UUID', fk: { target }, fkNameField: nameField });
       columns.push({ field: nameField, column: nameColumn, type: 'TEXT', isFkNameFor: field });
       continue;
     }
@@ -137,6 +145,7 @@ function formatValue(v, type) {
   if (type === 'JSONB') return "'" + escapeText(JSON.stringify(v)) + "'::jsonb";
   if (type === 'BOOLEAN') return v ? 'TRUE' : 'FALSE';
   if (type === 'NUMERIC') return typeof v === 'number' && Number.isFinite(v) ? String(v) : 'NULL';
+  if (type === 'UUID') return v ? `'${v}'` : 'NULL';
   return "'" + escapeText(String(v)) + "'";
 }
 
@@ -181,19 +190,24 @@ export function buildImportPlan(data) {
     throw err;
   }
 
-  // Pre-compute each table's numeric "id" set so FK columns can be null'd
-  // out instead of pointing at an id that doesn't actually exist.
-  const idSets = {};
+  // Every row gets its own fresh UUID up front, so (a) it can be used as this
+  // row's own primary key value and (b) other rows can reference it as an FK
+  // before we've even started building SQL for this table.
+  const uuidByTableRowKey = {};
+  const uuidByTableId = {}; // for resolving "id:name" FK text into the target's UUID
   for (const [table, rows] of Object.entries(tables)) {
-    const ids = new Set();
-    for (const { record } of rows) if (typeof record.id === 'number') ids.add(record.id);
-    idSets[table] = ids;
+    uuidByTableRowKey[table] = {};
+    uuidByTableId[table] = {};
+    for (const { rowKey, record } of rows) {
+      const uuid = crypto.randomUUID();
+      uuidByTableRowKey[table][rowKey] = uuid;
+      if (typeof record.id === 'number') uuidByTableId[table][record.id] = uuid;
+    }
   }
 
   const manifest = {};
   const summary = [];
   const fkNullCounts = {}; // "table.field" -> count of refs that didn't resolve
-  const uniqueConstraintTables = new Set();
   const fkConstraints = []; // { table, column, targetTable }
   const sqlParts = ["SET client_encoding = 'UTF8';", 'BEGIN;'];
 
@@ -203,39 +217,43 @@ export function buildImportPlan(data) {
     const qTable = quoteIdent(tableName);
 
     manifest[tableName] = {
-      primaryKey: 'row_key',
+      primaryKey: 'uuid',
       rowCount: rows.length,
       columns: columns.map((c) => ({ field: c.field, column: c.column, type: c.type })),
     };
     summary.push({ table: tableName, rows: rows.length });
 
     sqlParts.push(`DROP TABLE IF EXISTS ${qTable} CASCADE;`);
-    const colDefs = [`  ${quoteIdent('row_key')} TEXT PRIMARY KEY`];
+    const colDefs = [
+      `  ${quoteIdent('uuid')} UUID PRIMARY KEY`,
+      `  ${quoteIdent('row_key')} TEXT`,
+    ];
     for (const col of columns) colDefs.push(`  ${quoteIdent(col.column)} ${col.type}`);
     sqlParts.push(`CREATE TABLE ${qTable} (\n${colDefs.join(',\n')}\n);`);
 
     for (const col of columns) {
       if (!col.fk) continue;
-      if (col.fk.addConstraint) uniqueConstraintTables.add(col.fk.target);
-      fkConstraints.push({ table: tableName, column: col.column, targetTable: col.fk.target, addConstraint: col.fk.addConstraint });
+      fkConstraints.push({ table: tableName, column: col.column, targetTable: col.fk.target });
     }
 
     if (rows.length > 0) {
-      const colNames = [quoteIdent('row_key'), ...columns.map((c) => quoteIdent(c.column))];
+      const colNames = [quoteIdent('uuid'), quoteIdent('row_key'), ...columns.map((c) => quoteIdent(c.column))];
       for (let i = 0; i < rows.length; i += BATCH_SIZE) {
         const batch = rows.slice(i, i + BATCH_SIZE);
         const valueLines = batch.map(({ rowKey, record }) => {
-          const vals = [`'${escapeText(rowKey)}'`];
+          const vals = [
+            `'${uuidByTableRowKey[tableName][rowKey]}'`,
+            `'${escapeText(rowKey)}'`,
+          ];
           for (const col of columns) {
             if (col.fk) {
               const parsed = parseIdName(record[col.field]);
-              let idValue = parsed ? parsed.id : null;
-              if (idValue !== null && !idSets[col.fk.target]?.has(idValue)) {
-                idValue = null;
+              const targetUuid = parsed ? uuidByTableId[col.fk.target]?.[parsed.id] : undefined;
+              if (parsed && !targetUuid) {
                 const key = `${tableName}.${col.field}`;
                 fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
               }
-              vals.push(formatValue(idValue, 'NUMERIC'));
+              vals.push(formatValue(targetUuid || null, 'UUID'));
             } else if (col.isFkNameFor) {
               // Companion text column for a preceding FK field.
               const parsed = parseIdName(record[col.isFkNameFor]);
@@ -253,18 +271,15 @@ export function buildImportPlan(data) {
   }
 
   // Constraints are added after every table exists and is populated, so
-  // creation order and cross-table references never matter.
-  for (const target of uniqueConstraintTables) {
-    sqlParts.push(
-      `ALTER TABLE ${quoteIdent(target)} ADD CONSTRAINT ${quoteIdent(target + '_id_unique')} UNIQUE ("id");`
-    );
-  }
+  // creation order and cross-table references never matter. Unlike the
+  // human "id" (which can duplicate, e.g. companypayment has 3 dupes in the
+  // source data), "uuid" is always unique by construction, so every FK here
+  // can have a real constraint - no exceptions needed.
   for (const fk of fkConstraints) {
-    if (!fk.addConstraint) continue;
     const constraintName = `${fk.table}_${fk.column}_fkey`;
     sqlParts.push(
       `ALTER TABLE ${quoteIdent(fk.table)} ADD CONSTRAINT ${quoteIdent(constraintName)} ` +
-        `FOREIGN KEY (${quoteIdent(fk.column)}) REFERENCES ${quoteIdent(fk.targetTable)} ("id");`
+        `FOREIGN KEY (${quoteIdent(fk.column)}) REFERENCES ${quoteIdent(fk.targetTable)} ("uuid");`
     );
   }
 
