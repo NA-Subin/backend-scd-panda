@@ -117,9 +117,9 @@
       }
     ]
   },
-  "customers_bigtruck": {
+  "customers": {
     "primaryKey": "uuid",
-    "rowCount": 82,
+    "rowCount": 206,
     "columns": [
       {
         "field": "Address",
@@ -227,6 +227,11 @@
         "type": "TEXT"
       },
       {
+        "field": "Category",
+        "column": "category",
+        "type": "TEXT"
+      },
+      {
         "field": "Price",
         "column": "price",
         "type": "JSONB"
@@ -239,37 +244,6 @@
       {
         "field": "SystemStatus",
         "column": "system_status",
-        "type": "TEXT"
-      }
-    ]
-  },
-  "customers_gasstations": {
-    "primaryKey": "uuid",
-    "rowCount": 17,
-    "columns": [
-      {
-        "field": "Address",
-        "column": "address",
-        "type": "JSONB"
-      },
-      {
-        "field": "Code",
-        "column": "code",
-        "type": "TEXT"
-      },
-      {
-        "field": "CodeID",
-        "column": "code_id",
-        "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "CreditTime",
-        "column": "credit_time",
         "type": "TEXT"
       },
       {
@@ -278,396 +252,13 @@
         "type": "TEXT"
       },
       {
-        "field": "Name",
-        "column": "name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate1",
-        "column": "rate1",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate2",
-        "column": "rate2",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate3",
-        "column": "rate3",
-        "type": "TEXT"
-      },
-      {
         "field": "ShortName",
         "column": "short_name",
         "type": "TEXT"
       },
       {
-        "field": "Status",
-        "column": "status",
-        "type": "TEXT"
-      },
-      {
-        "field": "TicketsName",
-        "column": "tickets_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "companyName",
-        "column": "company_name_2",
-        "type": "TEXT"
-      },
-      {
-        "field": "id",
-        "column": "id",
-        "type": "NUMERIC"
-      },
-      {
-        "field": "lat",
-        "column": "lat",
-        "type": "TEXT"
-      },
-      {
-        "field": "lng",
-        "column": "lng",
-        "type": "TEXT"
-      },
-      {
-        "field": "Type",
-        "column": "type",
-        "type": "TEXT"
-      },
-      {
-        "field": "Price",
-        "column": "price",
-        "type": "JSONB"
-      },
-      {
-        "field": "SystemStatus",
-        "column": "system_status",
-        "type": "TEXT"
-      }
-    ]
-  },
-  "customers_smalltruck": {
-    "primaryKey": "uuid",
-    "rowCount": 60,
-    "columns": [
-      {
-        "field": "Address",
-        "column": "address",
-        "type": "JSONB"
-      },
-      {
-        "field": "Bill",
-        "column": "bill",
-        "type": "TEXT"
-      },
-      {
-        "field": "Code",
-        "column": "code",
-        "type": "TEXT"
-      },
-      {
-        "field": "CodeID",
-        "column": "code_id",
-        "type": "TEXT"
-      },
-      {
-        "field": "Company",
-        "column": "company",
-        "type": "UUID"
-      },
-      {
-        "field": "CompanyRefName",
-        "column": "company_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name_2",
-        "type": "TEXT"
-      },
-      {
         "field": "Credit",
         "column": "credit",
-        "type": "TEXT"
-      },
-      {
-        "field": "CreditTime",
-        "column": "credit_time",
-        "type": "TEXT"
-      },
-      {
-        "field": "Name",
-        "column": "name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Phone",
-        "column": "phone",
-        "type": "TEXT"
-      },
-      {
-        "field": "Registration",
-        "column": "registration",
-        "type": "TEXT"
-      },
-      {
-        "field": "RegistrationCheck",
-        "column": "registration_check",
-        "type": "BOOLEAN"
-      },
-      {
-        "field": "Status",
-        "column": "status",
-        "type": "TEXT"
-      },
-      {
-        "field": "StatusCompany",
-        "column": "status_company",
-        "type": "TEXT"
-      },
-      {
-        "field": "TicketsName",
-        "column": "tickets_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Type",
-        "column": "type",
-        "type": "TEXT"
-      },
-      {
-        "field": "id",
-        "column": "id",
-        "type": "NUMERIC"
-      },
-      {
-        "field": "lat",
-        "column": "lat",
-        "type": "TEXT"
-      },
-      {
-        "field": "lng",
-        "column": "lng",
-        "type": "TEXT"
-      },
-      {
-        "field": "SystemStatus",
-        "column": "system_status",
-        "type": "TEXT"
-      }
-    ]
-  },
-  "customers_tickets": {
-    "primaryKey": "uuid",
-    "rowCount": 14,
-    "columns": [
-      {
-        "field": "Address",
-        "column": "address",
-        "type": "JSONB"
-      },
-      {
-        "field": "Bill",
-        "column": "bill",
-        "type": "TEXT"
-      },
-      {
-        "field": "Code",
-        "column": "code",
-        "type": "TEXT"
-      },
-      {
-        "field": "CodeID",
-        "column": "code_id",
-        "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "CreditTime",
-        "column": "credit_time",
-        "type": "TEXT"
-      },
-      {
-        "field": "Name",
-        "column": "name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Phone",
-        "column": "phone",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate1",
-        "column": "rate1",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate2",
-        "column": "rate2",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate3",
-        "column": "rate3",
-        "type": "TEXT"
-      },
-      {
-        "field": "Status",
-        "column": "status",
-        "type": "TEXT"
-      },
-      {
-        "field": "TicketsName",
-        "column": "tickets_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Type",
-        "column": "type",
-        "type": "TEXT"
-      },
-      {
-        "field": "companyName",
-        "column": "company_name_2",
-        "type": "TEXT"
-      },
-      {
-        "field": "creditTime",
-        "column": "credit_time_2",
-        "type": "TEXT"
-      },
-      {
-        "field": "id",
-        "column": "id",
-        "type": "NUMERIC"
-      },
-      {
-        "field": "lat",
-        "column": "lat",
-        "type": "TEXT"
-      },
-      {
-        "field": "lng",
-        "column": "lng",
-        "type": "TEXT"
-      },
-      {
-        "field": "SystemStatus",
-        "column": "system_status",
-        "type": "TEXT"
-      }
-    ]
-  },
-  "customers_transports": {
-    "primaryKey": "uuid",
-    "rowCount": 33,
-    "columns": [
-      {
-        "field": "Address",
-        "column": "address",
-        "type": "JSONB"
-      },
-      {
-        "field": "Bill",
-        "column": "bill",
-        "type": "TEXT"
-      },
-      {
-        "field": "Code",
-        "column": "code",
-        "type": "TEXT"
-      },
-      {
-        "field": "CodeID",
-        "column": "code_id",
-        "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "CreditTime",
-        "column": "credit_time",
-        "type": "TEXT"
-      },
-      {
-        "field": "Name",
-        "column": "name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Phone",
-        "column": "phone",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate1",
-        "column": "rate1",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate2",
-        "column": "rate2",
-        "type": "TEXT"
-      },
-      {
-        "field": "Rate3",
-        "column": "rate3",
-        "type": "TEXT"
-      },
-      {
-        "field": "Status",
-        "column": "status",
-        "type": "TEXT"
-      },
-      {
-        "field": "TicketsName",
-        "column": "tickets_name",
-        "type": "TEXT"
-      },
-      {
-        "field": "Type",
-        "column": "type",
-        "type": "TEXT"
-      },
-      {
-        "field": "id",
-        "column": "id",
-        "type": "NUMERIC"
-      },
-      {
-        "field": "lat",
-        "column": "lat",
-        "type": "TEXT"
-      },
-      {
-        "field": "lng",
-        "column": "lng",
-        "type": "TEXT"
-      },
-      {
-        "field": "SystemStatus",
-        "column": "system_status",
-        "type": "TEXT"
-      },
-      {
-        "field": "companyName",
-        "column": "company_name_2",
-        "type": "TEXT"
-      },
-      {
-        "field": "creditTime",
-        "column": "credit_time_2",
         "type": "TEXT"
       }
     ]
@@ -1364,6 +955,11 @@
       {
         "field": "TicketName",
         "column": "ticket_name",
+        "type": "UUID"
+      },
+      {
+        "field": "TicketNameName",
+        "column": "ticket_name_name",
         "type": "TEXT"
       },
       {
@@ -1855,6 +1451,11 @@
       {
         "field": "TicketName",
         "column": "ticket_name",
+        "type": "UUID"
+      },
+      {
+        "field": "TicketNameName",
+        "column": "ticket_name_name",
         "type": "TEXT"
       },
       {
@@ -2276,6 +1877,11 @@
         "type": "UUID"
       },
       {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
+      },
+      {
         "field": "DateEndInsurance",
         "column": "date_end_insurance",
         "type": "TEXT"
@@ -2359,11 +1965,6 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
       }
     ]
   },
@@ -2415,6 +2016,11 @@
         "field": "Company",
         "column": "company",
         "type": "UUID"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       },
       {
         "field": "DateEndInsurance",
@@ -2480,11 +2086,6 @@
         "field": "Path",
         "column": "path",
         "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
       }
     ]
   },
@@ -2501,6 +2102,11 @@
         "field": "Company",
         "column": "company",
         "type": "UUID"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       },
       {
         "field": "DateEndInsurance",
@@ -2576,11 +2182,6 @@
         "field": "StatusTruck",
         "column": "status_truck",
         "type": "TEXT"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
       }
     ]
   },
@@ -2592,6 +2193,11 @@
         "field": "Company",
         "column": "company",
         "type": "UUID"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       },
       {
         "field": "Name",
@@ -2637,11 +2243,6 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
-      },
-      {
-        "field": "CompanyName",
-        "column": "company_name",
-        "type": "TEXT"
       }
     ]
   }

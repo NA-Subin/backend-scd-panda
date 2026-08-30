@@ -1,16 +1,31 @@
 import { Elysia } from 'elysia';
 import { pool } from '../db.js';
-import { BASIC_DATA_MAP, selectColumnsSql } from '../schema-manifest.js';
+import { BASIC_DATA_MAP, CATEGORY_FILTERED_KEYS, selectColumnsSql } from '../schema-manifest.js';
 import { rowsToKeyedObject } from '../rowShape.js';
 
 export const basicDataRoutes = new Elysia().get('/api/basic-data', async () => {
-  const keys = Object.keys(BASIC_DATA_MAP);
-  const results = await Promise.all(
-    keys.map(async (key) => {
-      const table = BASIC_DATA_MAP[key];
+  const plainResults = await Promise.all(
+    Object.entries(BASIC_DATA_MAP).map(async ([key, table]) => {
       const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
       return [key, rowsToKeyedObject(rows)];
     })
   );
-  return Object.fromEntries(results);
+
+  // The 5 customer categories share one underlying table now - fetch it once
+  // and split by Category in JS instead of running 5 separate queries.
+  const categoryTables = new Set(Object.values(CATEGORY_FILTERED_KEYS).map((c) => c.table));
+  const categoryRowsByTable = Object.fromEntries(
+    await Promise.all(
+      [...categoryTables].map(async (table) => {
+        const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
+        return [table, rows];
+      })
+    )
+  );
+  const categoryResults = Object.entries(CATEGORY_FILTERED_KEYS).map(([key, { table, category }]) => {
+    const rows = categoryRowsByTable[table].filter((row) => row.Category === category);
+    return [key, rowsToKeyedObject(rows)];
+  });
+
+  return Object.fromEntries([...plainResults, ...categoryResults]);
 });

@@ -66,14 +66,22 @@ export const BASIC_DATA_MAP = {
   transport: 'truck_transport',
   depots: 'depot_oils',
   gasstation: 'depot_gas_stations',
-  customertransports: 'customers_transports',
-  customergasstations: 'customers_gasstations',
-  customerbigtruck: 'customers_bigtruck',
-  customersmalltruck: 'customers_smalltruck',
-  customertickets: 'customers_tickets',
   deductibleincome: 'deductibleincome',
   companypayment: 'companypayment',
   expenseitems: 'expenseitems',
   quotation: 'quotation',
   inspection: 'inspection',
+};
+
+// The 5 customer categories used to live in separate tables
+// (customers_bigtruck, customers_smalltruck, ...); they're now one merged
+// "customers" table (see importData.js) so order.TicketName/tickets.TicketName
+// can FK into it. Kept as 5 separate basic-data keys anyway, filtered by
+// Category, so none of the frontend pages that read these keys need to change.
+export const CATEGORY_FILTERED_KEYS = {
+  customerbigtruck: { table: 'customers', category: 'bigtruck' },
+  customersmalltruck: { table: 'customers', category: 'smalltruck' },
+  customergasstations: { table: 'customers', category: 'gasstations' },
+  customertickets: { table: 'customers', category: 'tickets' },
+  customertransports: { table: 'customers', category: 'transports' },
 };

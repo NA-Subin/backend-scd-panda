@@ -25,14 +25,46 @@
 
 const NAMESPACE_NODES = new Set(['customers', 'depot', 'employee', 'report', 'truck']);
 
+// The 5 customers/* subnodes are merged into one "customers" table (tagged
+// with a Category column) instead of 5 separate tables, so order.TicketName
+// and tickets.TicketName can point at a single real FK target - Postgres
+// can't constrain one column against multiple tables. Ids are only unique
+// within one of these subnodes, not across all 5 - see discriminatorField
+// below for how that's resolved.
+const CUSTOMER_CATEGORIES = new Set(['bigtruck', 'smalltruck', 'gasstations', 'tickets', 'transports']);
+// Duplicate lowercase-cased fields (companyName/creditTime) that shadow the
+// real CompanyName/CreditTime fields on 3 of the 5 tables - no frontend code
+// reads them, dropped during the merge rather than carried forward twice.
+const CUSTOMER_MERGE_DROP_FIELDS = ['companyName', 'creditTime'];
+
+// A single field can point at a different target row depending on another
+// field on the same record (TicketName's numeric id is only meaningful
+// together with CustomerType - "2" means something different for an oil
+// ticket than for a gas-station ticket). discriminatorField names that other
+// field; discriminatorMap resolves its value to the target row's Category.
+const TICKET_NAME_DISCRIMINATOR = {
+  target: 'customers',
+  discriminatorField: 'CustomerType',
+  discriminatorMap: {
+    'ตั๋วน้ำมัน': 'tickets',
+    'ตั๋วปั้ม': 'gasstations',
+    'ตั๋วรับจ้างขนส่ง': 'transports',
+    'ตั๋วรถใหญ่': 'bigtruck',
+    'ตั๋วรถเล็ก': 'smalltruck',
+  },
+};
+
 // tableName -> { fieldName -> { target: tableName } }
 const FK_FIELDS = {
-  customers_bigtruck: { Company: { target: 'company' } },
-  customers_smalltruck: { Company: { target: 'company' } },
+  customers: { Company: { target: 'company' } },
   employee_drivers: { Position: { target: 'positions' }, Registration: { target: 'truck_registration' } },
   employee_officers: { Position: { target: 'positions' } },
   inspection: { Employee: { target: 'employee_drivers' }, employee: { target: 'employee_drivers' } },
-  order: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
+  order: {
+    Driver: { target: 'employee_drivers' },
+    Registration: { target: 'truck_registration' },
+    TicketName: TICKET_NAME_DISCRIMINATOR,
+  },
   quotation: { Company: { target: 'company' }, Employee: { target: 'employee_officers' } },
   report_financial: {
     Driver: { target: 'employee_drivers' },
@@ -44,7 +76,11 @@ const FK_FIELDS = {
     Bank: { target: 'expenseitems' },
     Company: { target: 'companypayment' },
   },
-  tickets: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
+  tickets: {
+    Driver: { target: 'employee_drivers' },
+    Registration: { target: 'truck_registration' },
+    TicketName: TICKET_NAME_DISCRIMINATOR,
+  },
   transfermoney: { BankName: { target: 'banks' } },
   trip: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
   truck_registration: {
@@ -106,7 +142,7 @@ function classifyColumns(tableName, rows) {
 
   for (const field of fieldOrder) {
     if (fkFields[field]) {
-      const { target } = fkFields[field];
+      const fkConfig = fkFields[field];
       let idColumn = toSnakeCase(field);
       if (usedNames.has(idColumn)) {
         let n = 2;
@@ -120,7 +156,7 @@ function classifyColumns(tableName, rows) {
       const nameColumn = `${idColumn}_name`;
       usedNames.add(idColumn);
       usedNames.add(nameColumn);
-      columns.push({ field, column: idColumn, type: 'UUID', fk: { target }, fkNameField: nameField });
+      columns.push({ field, column: idColumn, type: 'UUID', fk: fkConfig, fkNameField: nameField });
       columns.push({ field: nameField, column: nameColumn, type: 'TEXT', isFkNameFor: field });
       continue;
     }
@@ -175,11 +211,34 @@ export function buildImportPlan(data) {
     tables[tableName] = rows;
   }
 
+  // The 5 customers/* subnodes (bigtruck, smalltruck, gasstations, tickets,
+  // transports) merge into one "customers" table tagged with Category,
+  // instead of 5 separate tables - see CUSTOMER_CATEGORIES above.
+  function addMergedCustomers(customersNode) {
+    const rows = [];
+    for (const subKey of Object.keys(customersNode)) {
+      const subVal = customersNode[subKey];
+      if (!subVal || typeof subVal !== 'object' || !CUSTOMER_CATEGORIES.has(subKey)) continue;
+      for (const rowKey of Object.keys(subVal)) {
+        const val = subVal[rowKey];
+        const record = val === null || typeof val !== 'object' ? { value: val } : { ...val };
+        for (const dropField of CUSTOMER_MERGE_DROP_FIELDS) delete record[dropField];
+        record.Category = subKey;
+        // Prefixed so rows from different categories (which reuse the same
+        // small row-key/id ranges) don't collide once merged into one table.
+        rows.push({ rowKey: `${subKey}_${rowKey}`, record });
+      }
+    }
+    if (rows.length) tables.customers = rows;
+  }
+
   for (const topKey of Object.keys(data)) {
     const topVal = data[topKey];
     if (!topVal || typeof topVal !== 'object') continue;
     const tableBase = toSnakeCase(topKey);
-    if (NAMESPACE_NODES.has(topKey)) {
+    if (topKey === 'customers') {
+      addMergedCustomers(topVal);
+    } else if (NAMESPACE_NODES.has(topKey)) {
       for (const subKey of Object.keys(topVal)) {
         const subVal = topVal[subKey];
         if (!subVal || typeof subVal !== 'object') continue;
@@ -201,14 +260,24 @@ export function buildImportPlan(data) {
   // row's own primary key value and (b) other rows can reference it as an FK
   // before we've even started building SQL for this table.
   const uuidByTableRowKey = {};
-  const uuidByTableId = {}; // for resolving "id:name" FK text into the target's UUID
+  // For resolving "id:name" FK text into the target's UUID. Flat {id: uuid}
+  // for every table except "customers", where ids are only unique per
+  // Category (a merged table of 5 originally-separate sources) - nested one
+  // level deeper there: {category: {id: uuid}}.
+  const uuidByTableId = {};
   for (const [table, rows] of Object.entries(tables)) {
     uuidByTableRowKey[table] = {};
     uuidByTableId[table] = {};
     for (const { rowKey, record } of rows) {
       const uuid = crypto.randomUUID();
       uuidByTableRowKey[table][rowKey] = uuid;
-      if (typeof record.id === 'number') uuidByTableId[table][record.id] = uuid;
+      if (typeof record.id !== 'number') continue;
+      if (table === 'customers') {
+        const byCategory = (uuidByTableId[table][record.Category] ??= {});
+        byCategory[record.id] = uuid;
+      } else {
+        uuidByTableId[table][record.id] = uuid;
+      }
     }
   }
 
@@ -255,7 +324,13 @@ export function buildImportPlan(data) {
           for (const col of columns) {
             if (col.fk) {
               const parsed = parseIdName(record[col.field]);
-              const targetUuid = parsed ? uuidByTableId[col.fk.target]?.[parsed.id] : undefined;
+              let targetUuid;
+              if (parsed && col.fk.discriminatorField) {
+                const category = col.fk.discriminatorMap[record[col.fk.discriminatorField]];
+                targetUuid = category ? uuidByTableId[col.fk.target]?.[category]?.[parsed.id] : undefined;
+              } else if (parsed) {
+                targetUuid = uuidByTableId[col.fk.target]?.[parsed.id];
+              }
               if (parsed && !targetUuid) {
                 const key = `${tableName}.${col.field}`;
                 fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
