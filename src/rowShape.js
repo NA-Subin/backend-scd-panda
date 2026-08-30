@@ -6,7 +6,7 @@ export function rowsToKeyedObject(rows) {
   const result = {};
   for (const row of rows) {
     const { uuid, row_key, ...fields } = row;
-    result[uuid] = fields;
+    result[uuid] = { uuid, ...fields };
   }
   return result;
 }

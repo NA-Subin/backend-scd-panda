@@ -23,13 +23,11 @@ const ACCESS_RIGHT_FIELDS = [
   'BigTruckData',
 ];
 
-async function findPosition(positionField) {
-  if (!positionField) return null;
-  const positionId = Number(String(positionField).split(':')[0]);
-  if (Number.isNaN(positionId)) return null;
+async function findPosition(positionUuid) {
+  if (!positionUuid) return null;
   const { rows } = await pool.query(
-    `SELECT ${selectColumnsSql('positions')} FROM "positions" WHERE "id" = $1`,
-    [positionId]
+    `SELECT ${selectColumnsSql('positions')} FROM "positions" WHERE "uuid" = $1`,
+    [positionUuid]
   );
   return rows[0] || null;
 }
