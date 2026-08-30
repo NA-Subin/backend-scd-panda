@@ -47,7 +47,14 @@ const FK_FIELDS = {
   tickets: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
   transfermoney: { BankName: { target: 'banks' } },
   trip: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
-  truck_registration: { Driver: { target: 'employee_drivers' }, RegTail: { target: 'truck_registration_tail' } },
+  truck_registration: {
+    Driver: { target: 'employee_drivers' },
+    RegTail: { target: 'truck_registration_tail' },
+    Company: { target: 'company' },
+  },
+  truck_registration_tail: { Company: { target: 'company' } },
+  truck_small: { Company: { target: 'company' } },
+  truck_transport: { Company: { target: 'company' } },
   depot_gas_stations: { Stock: { target: 'depot_stock' } },
 };
 

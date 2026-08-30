@@ -2273,7 +2273,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "DateEndInsurance",
@@ -2359,6 +2359,11 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       }
     ]
   },
@@ -2409,7 +2414,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "DateEndInsurance",
@@ -2475,6 +2480,11 @@
         "field": "Path",
         "column": "path",
         "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       }
     ]
   },
@@ -2490,7 +2500,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "DateEndInsurance",
@@ -2566,6 +2576,11 @@
         "field": "StatusTruck",
         "column": "status_truck",
         "type": "TEXT"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       }
     ]
   },
@@ -2576,7 +2591,7 @@
       {
         "field": "Company",
         "column": "company",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "Name",
@@ -2622,6 +2637,11 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
+      },
+      {
+        "field": "CompanyName",
+        "column": "company_name",
+        "type": "TEXT"
       }
     ]
   }
