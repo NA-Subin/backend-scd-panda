@@ -89,6 +89,38 @@ export const authRoutes = new Elysia()
 
   .get('/api/auth/me', ({ headers }) => requireAuth(headers))
 
+  // Verifies the caller's current password against the bcrypt hash and
+  // writes a freshly-hashed new one. Identity comes from the JWT, not the
+  // request body, so a caller can only ever change their own password.
+  // Only officers/drivers have login credentials (see LOGIN_TABLES above).
+  .post('/api/auth/change-password', async ({ headers, body, set }) => {
+    const payload = requireAuth(headers);
+    const { currentPassword, newPassword } = body || {};
+    if (!currentPassword || !newPassword) {
+      set.status = 400;
+      return { error: 'currentPassword and newPassword are required' };
+    }
+
+    const table = payload.entityType === 'driver' ? 'employee_drivers' : 'employee_officers';
+    const { rows } = await pool.query(
+      `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "id" = $1`,
+      [payload.id]
+    );
+    const row = rows[0];
+    if (!row || !(await bcrypt.compare(currentPassword, row.Password || ''))) {
+      set.status = 401;
+      return { error: 'รหัสผ่านเดิมไม่ถูกต้อง' };
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      `UPDATE "${table}" SET "${columnNameForField(table, 'Password')}" = $1 WHERE "id" = $2`,
+      [hashed, payload.id]
+    );
+
+    return { success: true };
+  })
+
   // Creates a login-capable row (officer, driver, or transport truck) with
   // a bcrypt-hashed password. Replaces the old Firebase Auth
   // createUserWithEmailAndPassword() call - both /api/auth/login and the
