@@ -12,10 +12,16 @@ const LOGIN_TABLES = [
   { table: 'employee_drivers', entityType: 'driver' },
 ];
 
-// Tables account-creation is allowed to write to - kept to the same two
-// tables /api/auth/login reads from, so every row it accepts here is one
-// login will actually be able to authenticate against later.
-const REGISTERABLE_TABLES = new Set(LOGIN_TABLES.map((t) => t.table));
+// Tables account-creation is allowed to write to, and the column each one
+// uses to store the bcrypt hash. employee_officers/employee_drivers are the
+// two /api/auth/login reads from; truck_transport has its own login-shaped
+// UserId/PassWord columns from a separate (pre-existing, unrelated to this
+// migration) transport-truck credential flow.
+const REGISTERABLE_TABLES = {
+  employee_officers: 'Password',
+  employee_drivers: 'Password',
+  truck_transport: 'PassWord',
+};
 
 const ACCESS_RIGHT_FIELDS = [
   'DriverData',
@@ -83,17 +89,19 @@ export const authRoutes = new Elysia()
 
   .get('/api/auth/me', ({ headers }) => requireAuth(headers))
 
-  // Creates a login-capable officer/driver row with a bcrypt-hashed password.
-  // Replaces the old Firebase Auth createUserWithEmailAndPassword() call -
-  // /api/auth/login only ever compares against a bcrypt hash, so any account
-  // created outside this endpoint (e.g. via the generic /api/:table POST)
-  // would never be able to log in.
+  // Creates a login-capable row (officer, driver, or transport truck) with
+  // a bcrypt-hashed password. Replaces the old Firebase Auth
+  // createUserWithEmailAndPassword() call - both /api/auth/login and the
+  // transport-truck credential flow only ever compare against a bcrypt
+  // hash, so any account created outside this endpoint (e.g. via the
+  // generic /api/:table POST) would never be able to log in.
   .post('/api/auth/register', async ({ body, set }) => {
     const { table, fields, password } = body || {};
 
-    if (!REGISTERABLE_TABLES.has(table)) {
+    const passwordField = REGISTERABLE_TABLES[table];
+    if (!passwordField) {
       set.status = 400;
-      return { error: 'table must be employee_officers or employee_drivers' };
+      return { error: 'table must be one of: ' + Object.keys(REGISTERABLE_TABLES).join(', ') };
     }
     if (!password) {
       set.status = 400;
@@ -101,12 +109,12 @@ export const authRoutes = new Elysia()
     }
 
     const record = fields || {};
-    const requestedFields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key' && f !== 'Password');
-    assertValidColumns(table, [...requestedFields, 'Password']);
+    const requestedFields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key' && f !== passwordField);
+    assertValidColumns(table, [...requestedFields, passwordField]);
 
     const hashed = await bcrypt.hash(password, 10);
     const uuid = crypto.randomUUID();
-    const allFields = [...requestedFields, 'Password'];
+    const allFields = [...requestedFields, passwordField];
     const columns = ['"uuid"', '"row_key"', ...allFields.map((f) => `"${columnNameForField(table, f)}"`)];
     const placeholders = allFields.map((_, i) => `$${i + 3}`);
     const values = [uuid, uuid, ...requestedFields.map((f) => record[f]), hashed];
