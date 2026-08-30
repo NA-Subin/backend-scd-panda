@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db.js';
-import { selectColumnsSql } from '../schema-manifest.js';
+import { selectColumnsSql, assertValidColumns, columnNameForField } from '../schema-manifest.js';
 import { requireAuth } from '../authMiddleware.js';
 
 // Only officers/drivers carry User+Password columns in the source data;
@@ -11,6 +11,11 @@ const LOGIN_TABLES = [
   { table: 'employee_officers', entityType: 'officer' },
   { table: 'employee_drivers', entityType: 'driver' },
 ];
+
+// Tables account-creation is allowed to write to - kept to the same two
+// tables /api/auth/login reads from, so every row it accepts here is one
+// login will actually be able to authenticate against later.
+const REGISTERABLE_TABLES = new Set(LOGIN_TABLES.map((t) => t.table));
 
 const ACCESS_RIGHT_FIELDS = [
   'DriverData',
@@ -76,4 +81,41 @@ export const authRoutes = new Elysia()
     return { token, user: safeUser, entityType, accessRights };
   })
 
-  .get('/api/auth/me', ({ headers }) => requireAuth(headers));
+  .get('/api/auth/me', ({ headers }) => requireAuth(headers))
+
+  // Creates a login-capable officer/driver row with a bcrypt-hashed password.
+  // Replaces the old Firebase Auth createUserWithEmailAndPassword() call -
+  // /api/auth/login only ever compares against a bcrypt hash, so any account
+  // created outside this endpoint (e.g. via the generic /api/:table POST)
+  // would never be able to log in.
+  .post('/api/auth/register', async ({ body, set }) => {
+    const { table, fields, password } = body || {};
+
+    if (!REGISTERABLE_TABLES.has(table)) {
+      set.status = 400;
+      return { error: 'table must be employee_officers or employee_drivers' };
+    }
+    if (!password) {
+      set.status = 400;
+      return { error: 'password is required' };
+    }
+
+    const record = fields || {};
+    const requestedFields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key' && f !== 'Password');
+    assertValidColumns(table, [...requestedFields, 'Password']);
+
+    const hashed = await bcrypt.hash(password, 10);
+    const uuid = crypto.randomUUID();
+    const allFields = [...requestedFields, 'Password'];
+    const columns = ['"uuid"', '"row_key"', ...allFields.map((f) => `"${columnNameForField(table, f)}"`)];
+    const placeholders = allFields.map((_, i) => `$${i + 3}`);
+    const values = [uuid, uuid, ...requestedFields.map((f) => record[f]), hashed];
+
+    await pool.query(
+      `INSERT INTO "${table}" (${columns.join(', ')}) VALUES ($1, $2, ${placeholders.join(', ')})`,
+      values
+    );
+
+    set.status = 201;
+    return { uuid };
+  });
