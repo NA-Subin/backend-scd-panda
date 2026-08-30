@@ -60,6 +60,17 @@ const FK_FIELDS = {
   employee_drivers: { Position: { target: 'positions' }, Registration: { target: 'truck_registration' } },
   employee_officers: { Position: { target: 'positions' } },
   inspection: { Employee: { target: 'employee_drivers' }, employee: { target: 'employee_drivers' } },
+  invoice: {
+    Transport: { target: 'company' },
+    // Same polymorphic id as order.TicketName/tickets.TicketName, but keyed
+    // off TicketType instead of CustomerType - the two fields hold the same
+    // 5 Thai strings, just named differently on this table.
+    TicketName: {
+      target: 'customers',
+      discriminatorField: 'TicketType',
+      discriminatorMap: TICKET_NAME_DISCRIMINATOR.discriminatorMap,
+    },
+  },
   order: {
     Driver: { target: 'employee_drivers' },
     Registration: { target: 'truck_registration' },
@@ -81,7 +92,18 @@ const FK_FIELDS = {
     Registration: { target: 'truck_registration' },
     TicketName: TICKET_NAME_DISCRIMINATOR,
   },
-  transfermoney: { BankName: { target: 'banks' } },
+  transfermoney: {
+    BankName: { target: 'banks' },
+    Transport: { target: 'company' },
+    // Same polymorphic id as order.TicketName/tickets.TicketName, but keyed
+    // off TicketType instead of CustomerType - the two fields hold the same
+    // 5 Thai strings, just named differently on this table.
+    TicketName: {
+      target: 'customers',
+      discriminatorField: 'TicketType',
+      discriminatorMap: TICKET_NAME_DISCRIMINATOR.discriminatorMap,
+    },
+  },
   trip: { Driver: { target: 'employee_drivers' }, Registration: { target: 'truck_registration' } },
   truck_registration: {
     Driver: { target: 'employee_drivers' },

@@ -834,6 +834,11 @@
       {
         "field": "TicketName",
         "column": "ticket_name",
+        "type": "UUID"
+      },
+      {
+        "field": "TicketNameName",
+        "column": "ticket_name_name",
         "type": "TEXT"
       },
       {
@@ -849,6 +854,11 @@
       {
         "field": "Transport",
         "column": "transport",
+        "type": "UUID"
+      },
+      {
+        "field": "TransportName",
+        "column": "transport_name",
         "type": "TEXT"
       },
       {
@@ -1527,6 +1537,11 @@
       {
         "field": "TicketName",
         "column": "ticket_name",
+        "type": "UUID"
+      },
+      {
+        "field": "TicketNameName",
+        "column": "ticket_name_name",
         "type": "TEXT"
       },
       {
@@ -1542,6 +1557,11 @@
       {
         "field": "Transport",
         "column": "transport",
+        "type": "UUID"
+      },
+      {
+        "field": "TransportName",
+        "column": "transport_name",
         "type": "TEXT"
       },
       {
