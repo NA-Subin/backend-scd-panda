@@ -4,6 +4,7 @@ import { basicDataRoutes } from './routes/basicData.js';
 import { tablesRoutes } from './routes/tables.js';
 import { authRoutes } from './routes/auth.js';
 import { adminRoutes } from './routes/admin.js';
+import { uploadRoutes } from './routes/uploads.js';
 
 const port = process.env.PORT || 4000;
 
@@ -24,6 +25,7 @@ const app = new Elysia()
   .use(basicDataRoutes)
   .use(authRoutes)
   .use(adminRoutes)
+  .use(uploadRoutes)
   .use(tablesRoutes)
   // Firebase export JSON re-imports can be tens of MB; raise Bun's default body limit.
   .listen({ port, maxRequestBodySize: 200 * 1024 * 1024 });
