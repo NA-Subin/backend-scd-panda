@@ -56,6 +56,7 @@ export function columnNameForField(table, field) {
 // Keys match BasicDataProvider's state shape exactly.
 export const BASIC_DATA_MAP = {
   company: 'company',
+  companyHistory: 'company_history',
   positions: 'positions',
   officers: 'employee_officers',
   drivers: 'employee_drivers',

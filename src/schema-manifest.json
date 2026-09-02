@@ -88,11 +88,42 @@
         "field": "lng",
         "column": "lng_2",
         "type": "TEXT"
+      }
+    ]
+  },
+  "company_history": {
+    "primaryKey": "uuid",
+    "rowCount": 2,
+    "columns": [
+      {
+        "field": "Company",
+        "column": "company",
+        "type": "UUID"
       },
       {
-        "field": "History",
-        "column": "history",
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "CardID",
+        "column": "card_id",
+        "type": "TEXT"
+      },
+      {
+        "field": "Address",
+        "column": "address",
         "type": "JSONB"
+      },
+      {
+        "field": "DateStart",
+        "column": "date_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "DateEnd",
+        "column": "date_end",
+        "type": "TEXT"
       }
     ]
   },
