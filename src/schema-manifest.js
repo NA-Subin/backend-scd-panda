@@ -57,6 +57,7 @@ export function columnNameForField(table, field) {
 export const BASIC_DATA_MAP = {
   company: 'company',
   companyHistory: 'company_history',
+  customer: 'customer',
   positions: 'positions',
   officers: 'employee_officers',
   drivers: 'employee_drivers',

@@ -148,6 +148,62 @@
       }
     ]
   },
+  "customer": {
+    "primaryKey": "uuid",
+    "rowCount": 0,
+    "columns": [
+      {
+        "field": "Name",
+        "column": "name",
+        "type": "TEXT"
+      },
+      {
+        "field": "Address",
+        "column": "address",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lat",
+        "column": "lat",
+        "type": "TEXT"
+      },
+      {
+        "field": "Lng",
+        "column": "lng",
+        "type": "TEXT"
+      },
+      {
+        "field": "Credit",
+        "column": "credit",
+        "type": "TEXT"
+      },
+      {
+        "field": "CreditTime",
+        "column": "credit_time",
+        "type": "TEXT"
+      },
+      {
+        "field": "Debt",
+        "column": "debt",
+        "type": "TEXT"
+      },
+      {
+        "field": "IdCard",
+        "column": "id_card",
+        "type": "TEXT"
+      },
+      {
+        "field": "Phone",
+        "column": "phone",
+        "type": "TEXT"
+      },
+      {
+        "field": "id",
+        "column": "id",
+        "type": "NUMERIC"
+      }
+    ]
+  },
   "customers": {
     "primaryKey": "uuid",
     "rowCount": 206,
