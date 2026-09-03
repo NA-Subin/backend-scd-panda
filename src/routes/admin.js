@@ -2,12 +2,12 @@ import { Elysia } from 'elysia';
 import { pool } from '../db.js';
 import { buildImportPlan, buildIncrementalImportPlan } from '../importData.js';
 import { setManifest } from '../schema-manifest.js';
-import { requireAuth } from '../authMiddleware.js';
+import { requireAdmin } from '../authMiddleware.js';
 import { hashPlaintextPasswords } from '../hashPasswords.js';
 
 export const adminRoutes = new Elysia()
   .post('/api/admin/import', async ({ headers, body, set }) => {
-    requireAuth(headers);
+    requireAdmin(headers);
 
     const data = body?.data;
     if (!data) {
@@ -47,7 +47,7 @@ export const adminRoutes = new Elysia()
   // Postgres, so it's safe to run against a live database that's had real
   // activity (new customers, transfers, tickets) since the original cutover.
   .post('/api/admin/import-incremental', async ({ headers, body, set }) => {
-    requireAuth(headers);
+    requireAdmin(headers);
 
     const data = body?.data;
     if (!data) {

@@ -1106,6 +1106,11 @@
     "rowCount": 8,
     "columns": [
       {
+        "field": "AdminData",
+        "column": "admin_data",
+        "type": "NUMERIC"
+      },
+      {
         "field": "BasicData",
         "column": "basic_data",
         "type": "NUMERIC"

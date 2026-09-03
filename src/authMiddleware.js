@@ -18,3 +18,18 @@ export function requireAuth(headers) {
     throw err;
   }
 }
+
+// Same as requireAuth, plus checks the caller's position was granted the
+// AdminData right at login (accessRights is baked into the token itself -
+// see routes/auth.js - so this doesn't need its own DB lookup). Used to gate
+// the Firebase-import endpoints, which can rewrite or add to every table in
+// the database.
+export function requireAdmin(headers) {
+  const payload = requireAuth(headers);
+  if (!payload.accessRights?.includes('AdminData')) {
+    const err = new Error('ต้องมีสิทธิ์ผู้ดูแลระบบ (admin)');
+    err.status = 403;
+    throw err;
+  }
+  return payload;
+}

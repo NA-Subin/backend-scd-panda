@@ -24,6 +24,7 @@ const REGISTERABLE_TABLES = {
 };
 
 const ACCESS_RIGHT_FIELDS = [
+  'AdminData',
   'DriverData',
   'GasStationData',
   'BasicData',
