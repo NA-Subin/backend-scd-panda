@@ -26,6 +26,9 @@
 -- incoming-payment totals always compute as 0 and every bill looks
 -- perpetually unpaid in the reports.
 
+SET client_encoding = 'UTF8';
+SET search_path TO scd_panda, public;
+
 BEGIN;
 
 ALTER TABLE transfermoney ADD COLUMN ticket_name_name TEXT;
