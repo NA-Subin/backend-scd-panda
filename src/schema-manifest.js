@@ -18,6 +18,14 @@ export function getTableNames() {
   return Object.keys(manifest);
 }
 
+// Raw manifest object, for callers that need to inspect a table's existing
+// columns without throwing when the table isn't known yet (assertValidTable
+// always throws) - e.g. the incremental importer, which needs to tell "this
+// field already has a column" from "this field needs one added" per table.
+export function getManifest() {
+  return manifest;
+}
+
 export function assertValidTable(table) {
   if (!(table in manifest)) {
     const err = new Error(`Unknown table "${table}"`);

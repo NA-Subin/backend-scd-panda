@@ -1,3 +1,5 @@
+import { getManifest } from './schema-manifest.js';
+
 // Converts a Firebase Realtime Database export (parsed JSON) into SQL that
 // drops and recreates all derived tables, then returns that SQL plus a fresh
 // schema manifest (column name mapping) and a row-count summary.
@@ -216,7 +218,12 @@ function formatValue(v, type) {
 
 const BATCH_SIZE = 500;
 
-export function buildImportPlan(data) {
+// Turns a raw Firebase export into { tableName: [{ rowKey, record }] },
+// applying the same namespace-flattening and 5-way customers merge both
+// buildImportPlan (full replace) and buildIncrementalImportPlan (additive)
+// need identically - so a row parsed one way always lands on the same
+// table/rowKey regardless of which import mode is used.
+function parseFirebaseTables(data) {
   if (!data || typeof data !== 'object') {
     const err = new Error('Uploaded file is not a valid JSON object');
     err.status = 400;
@@ -271,12 +278,18 @@ export function buildImportPlan(data) {
     }
   }
 
-  const tableNames = Object.keys(tables).sort();
-  if (!tableNames.length) {
+  if (!Object.keys(tables).length) {
     const err = new Error('No importable tables found in the uploaded JSON');
     err.status = 400;
     throw err;
   }
+
+  return tables;
+}
+
+export function buildImportPlan(data) {
+  const tables = parseFirebaseTables(data);
+  const tableNames = Object.keys(tables).sort();
 
   // Every row gets its own fresh UUID up front, so (a) it can be used as this
   // row's own primary key value and (b) other rows can reference it as an FK
@@ -392,4 +405,283 @@ export function buildImportPlan(data) {
   const fkSummary = Object.entries(fkNullCounts).map(([key, count]) => ({ field: key, unresolvedRefs: count }));
 
   return { sql: sqlParts.join('\n'), manifest, summary, fkSummary };
+}
+
+function quoteIdentPlain(name) {
+  return name.replace(/"/g, '""');
+}
+
+// Adds ONLY rows that don't already exist yet, leaving everything currently
+// in Postgres untouched - for pulling in records a newer/more complete
+// Firebase export has that the original one-time migration missed, without
+// re-running the full destructive replace buildImportPlan does (which would
+// drop every table and lose anything created directly through the live app
+// since the cutover - new customers, transfers, tickets, none of which were
+// ever written back to Firebase).
+//
+// A row already exists if its Firebase key (stored as "row_key", see the
+// header comment above) is already present in that table. New rows that
+// reference another row via an "id:name" FK field get resolved against
+// whichever has the matching numeric id - an existing DB row first, or
+// another new row from this same batch (in case the export adds, say, a new
+// customer and a new ticket for that customer in one go).
+//
+// If the export introduces a field that has no column yet (Firebase added it
+// after the last import), a column is added for it via ALTER TABLE and the
+// on-disk manifest is updated to match - existing rows just get NULL there.
+// If the export contains an entire table this database has never seen
+// before, it's created fresh (same as buildImportPlan would for it) with
+// every row treated as new.
+export async function buildIncrementalImportPlan(data, pool) {
+  const tables = parseFirebaseTables(data);
+  const tableNames = Object.keys(tables).sort();
+
+  // Shallow copy so this function stays a pure "compute the plan" - the
+  // caller decides whether to persist the updated manifest (setManifest),
+  // and only after the SQL it returns has actually been committed.
+  const manifest = { ...getManifest() };
+  const sqlParts = ["SET client_encoding = 'UTF8';", 'BEGIN;'];
+  const summary = [];
+  const fkNullCounts = {};
+  const manifestUpdates = {}; // tableName -> full updated column list
+
+  const { rows: existingTableRows } = await pool.query(
+    `SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema()`
+  );
+  const existingTableNames = new Set(existingTableRows.map((r) => r.table_name));
+
+  // Lazily loaded/cached id->uuid maps for existing DB rows, keyed by target
+  // table name ("customers" maps to {category: {id: uuid}}, everything else
+  // to {id: uuid}) - loaded once per target table no matter how many source
+  // tables FK into it.
+  const existingIdMapCache = {};
+  async function loadExistingIdMap(targetTable) {
+    if (existingIdMapCache[targetTable]) return existingIdMapCache[targetTable];
+    if (!existingTableNames.has(targetTable)) {
+      existingIdMapCache[targetTable] = {};
+      return existingIdMapCache[targetTable];
+    }
+    if (targetTable === 'customers') {
+      const { rows } = await pool.query(`SELECT "category", "id", "uuid" FROM "customers" WHERE "id" IS NOT NULL`);
+      const map = {};
+      for (const r of rows) {
+        (map[r.category] ??= {})[Number(r.id)] = r.uuid;
+      }
+      existingIdMapCache[targetTable] = map;
+    } else {
+      const { rows } = await pool.query(`SELECT "id", "uuid" FROM "${quoteIdentPlain(targetTable)}" WHERE "id" IS NOT NULL`);
+      const map = {};
+      for (const r of rows) map[Number(r.id)] = r.uuid;
+      existingIdMapCache[targetTable] = map;
+    }
+    return existingIdMapCache[targetTable];
+  }
+
+  // Pass 1: for every table, work out which rows are genuinely new and hand
+  // each one a fresh uuid - done for every table up front (independent of
+  // FK resolution/SQL generation below) so a new row in one table can be
+  // referenced by a new row in another table processed either before or
+  // after it in this same run.
+  const newRowsByTable = {};
+  const freshUuidByRowKey = {};
+  const freshIdMapByTable = {}; // same shape as loadExistingIdMap's return
+
+  for (const tableName of tableNames) {
+    const rows = tables[tableName];
+    const tableExists = existingTableNames.has(tableName);
+
+    let newRows = rows;
+    if (tableExists) {
+      const { rows: keyRows } = await pool.query(`SELECT "row_key" FROM "${quoteIdentPlain(tableName)}"`);
+      const existingRowKeys = new Set(keyRows.map((r) => r.row_key));
+      newRows = rows.filter((r) => !existingRowKeys.has(r.rowKey));
+    }
+
+    newRowsByTable[tableName] = newRows;
+    summary.push({ table: tableName, newRows: newRows.length, skippedExisting: rows.length - newRows.length });
+
+    const idMap = {};
+    for (const { rowKey, record } of newRows) {
+      const uuid = crypto.randomUUID();
+      freshUuidByRowKey[`${tableName} ${rowKey}`] = uuid;
+      if (typeof record.id !== 'number') continue;
+      if (tableName === 'customers') {
+        (idMap[record.Category] ??= {})[record.id] = uuid;
+      } else {
+        idMap[record.id] = uuid;
+      }
+    }
+    freshIdMapByTable[tableName] = idMap;
+  }
+
+  // Two known tables FK into each other (employee_drivers.Registration ->
+  // truck_registration, truck_registration.Driver -> employee_drivers) - a
+  // genuine cycle, so no processing order could satisfy both tables' FK
+  // constraints at INSERT time if each gets a new row referencing the
+  // other's new row in the same batch. Every new row is inserted with its
+  // FK columns left NULL; every FK value is filled in with a separate
+  // UPDATE pass only after every table's new rows already exist, so a
+  // reference resolves regardless of which table "goes first". New tables'
+  // FK constraints are added last, after that backfill - same as
+  // buildImportPlan already does for a full import.
+  const pendingFkBackfill = []; // { qTable, column, rowUuid, parsed, fk, record }
+  const newTableFkConstraints = []; // { qTable, column, target }
+
+  async function appendInsertsAndConstraints(tableName, qTable, columns, newRows, isNewTable) {
+    if (newRows.length === 0) return;
+
+    if (isNewTable) {
+      for (const col of columns) {
+        if (!col.fk) continue;
+        newTableFkConstraints.push({ qTable, column: col.column, target: col.fk.target });
+      }
+    }
+
+    const colNames = [quoteIdent('uuid'), quoteIdent('row_key'), ...columns.map((c) => quoteIdent(c.column))];
+    for (let i = 0; i < newRows.length; i += BATCH_SIZE) {
+      const batch = newRows.slice(i, i + BATCH_SIZE);
+      const valueLines = [];
+      for (const { rowKey, record } of batch) {
+        const rowUuid = freshUuidByRowKey[`${tableName} ${rowKey}`];
+        const vals = [`'${rowUuid}'`, `'${escapeText(rowKey)}'`];
+        for (const col of columns) {
+          if (col.fk) {
+            const parsed = parseIdName(record[col.field]);
+            if (parsed) {
+              pendingFkBackfill.push({ tableName, qTable, column: col.column, rowUuid, parsed, fk: col.fk, record });
+            }
+            vals.push('NULL'); // resolved and filled in by the backfill pass below
+          } else if (col.isFkNameFor) {
+            const parsed = parseIdName(record[col.isFkNameFor]);
+            const name = parsed ? parsed.name : (record[col.isFkNameFor] ?? null);
+            vals.push(formatValue(name, 'TEXT'));
+          } else {
+            vals.push(formatValue(record[col.field], col.type));
+          }
+        }
+        valueLines.push('  (' + vals.join(', ') + ')');
+      }
+      sqlParts.push(`INSERT INTO ${qTable} (${colNames.join(', ')}) VALUES\n${valueLines.join(',\n')};`);
+    }
+  }
+
+  // Pass 2: build SQL only for tables that actually have new rows (or don't
+  // exist yet at all).
+  for (const tableName of tableNames) {
+    const newRows = newRowsByTable[tableName];
+    const qTable = quoteIdent(tableName);
+    const tableExists = existingTableNames.has(tableName);
+
+    if (!tableExists) {
+      // Never-seen-before table - create it fresh, every row is new.
+      const columns = classifyColumns(tableName, newRows);
+      manifest[tableName] = {
+        primaryKey: 'uuid',
+        rowCount: newRows.length,
+        columns: columns.map((c) => ({ field: c.field, column: c.column, type: c.type })),
+      };
+      manifestUpdates[tableName] = manifest[tableName].columns;
+
+      const colDefs = [`  ${quoteIdent('uuid')} UUID PRIMARY KEY`, `  ${quoteIdent('row_key')} TEXT`];
+      for (const col of columns) colDefs.push(`  ${quoteIdent(col.column)} ${col.type}`);
+      sqlParts.push(`CREATE TABLE ${qTable} (\n${colDefs.join(',\n')}\n);`);
+
+      await appendInsertsAndConstraints(tableName, qTable, columns, newRows, true);
+      continue;
+    }
+
+    if (newRows.length === 0) continue;
+
+    // Existing table - figure out which of the fields present in the new
+    // rows already have a column, and which need one added. Checked against
+    // the LIVE table (information_schema), not just schema-manifest.json -
+    // the manifest is expected to stay in sync, but a table created or
+    // altered by some other path (a manual SQL migration that forgot to
+    // update it, say) would otherwise make every column look "new" and
+    // crash on the first ALTER TABLE ADD COLUMN for one that already exists.
+    const columns = classifyColumns(tableName, newRows);
+    const existingDef = manifest[tableName];
+    const { rows: liveColumnRows } = await pool.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = $1`,
+      [tableName]
+    );
+    const existingColumnNames = new Set(liveColumnRows.map((r) => r.column_name));
+    const columnsToAdd = columns.filter((c) => !existingColumnNames.has(c.column));
+
+    for (const col of columnsToAdd) {
+      sqlParts.push(`ALTER TABLE ${qTable} ADD COLUMN ${quoteIdent(col.column)} ${col.type};`);
+    }
+    if (columnsToAdd.length) {
+      manifest[tableName] = {
+        ...existingDef,
+        columns: [
+          ...(existingDef?.columns || []),
+          ...columnsToAdd.map((c) => ({ field: c.field, column: c.column, type: c.type })),
+        ],
+      };
+      manifestUpdates[tableName] = manifest[tableName].columns;
+    }
+
+    await appendInsertsAndConstraints(tableName, qTable, columns, newRows, false);
+  }
+
+  // Every table's new rows now exist (still with NULL FK columns), so every
+  // reference can resolve regardless of which table it points at or which
+  // order things were inserted in - including the employee_drivers <->
+  // truck_registration cycle. One UPDATE per (table, FK column) pair,
+  // matching each new row's uuid to its resolved target uuid via a VALUES
+  // list, rather than one UPDATE per row.
+  const backfillByTableColumn = new Map(); // "qTable:column" -> [{ rowUuid, targetUuid }]
+  for (const { tableName, qTable, column, rowUuid, parsed, fk, record } of pendingFkBackfill) {
+    const targetFresh = freshIdMapByTable[fk.target] || {};
+    const targetExisting = await loadExistingIdMap(fk.target);
+    let targetUuid;
+    if (fk.discriminatorField) {
+      const category = fk.discriminatorMap[record[fk.discriminatorField]];
+      targetUuid = (category && targetFresh[category]?.[parsed.id]) || (category && targetExisting[category]?.[parsed.id]);
+    } else {
+      targetUuid = targetFresh[parsed.id] ?? targetExisting[parsed.id];
+    }
+    if (!targetUuid) {
+      const key = `${tableName}.${column}`;
+      fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
+    }
+    const mapKey = `${qTable}:${column}`;
+    if (!backfillByTableColumn.has(mapKey)) backfillByTableColumn.set(mapKey, []);
+    backfillByTableColumn.get(mapKey).push({ rowUuid, targetUuid: targetUuid || null });
+  }
+
+  for (const [mapKey, entries] of backfillByTableColumn) {
+    const [qTable, column] = mapKey.split(':');
+    const valuesList = entries
+      .map((e) => `('${e.rowUuid}', ${e.targetUuid ? `'${e.targetUuid}'` : 'NULL'})`)
+      .join(',\n  ');
+    sqlParts.push(
+      `UPDATE ${qTable} AS t SET ${quoteIdent(column)} = v.target_uuid::uuid ` +
+        `FROM (VALUES\n  ${valuesList}\n) AS v(row_uuid, target_uuid) ` +
+        `WHERE t."uuid" = v.row_uuid::uuid;`
+    );
+  }
+
+  for (const { qTable, column, target } of newTableFkConstraints) {
+    const constraintName = `${qTable.replace(/"/g, '')}_${column}_fkey`;
+    sqlParts.push(
+      `ALTER TABLE ${qTable} ADD CONSTRAINT ${quoteIdent(constraintName)} ` +
+        `FOREIGN KEY (${quoteIdent(column)}) REFERENCES ${quoteIdent(target)} ("uuid");`
+    );
+  }
+
+  sqlParts.push('COMMIT;');
+
+  const fkSummary = Object.entries(fkNullCounts).map(([key, count]) => ({ field: key, unresolvedRefs: count }));
+  const totalNewRows = summary.reduce((sum, t) => sum + t.newRows, 0);
+
+  return {
+    sql: totalNewRows > 0 ? sqlParts.join('\n') : null,
+    manifest,
+    summary,
+    fkSummary,
+    manifestUpdates,
+    totalNewRows,
+  };
 }
