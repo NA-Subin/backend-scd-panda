@@ -1665,6 +1665,16 @@
         "field": "month",
         "column": "month",
         "type": "TEXT"
+      },
+      {
+        "field": "PeriodStart",
+        "column": "period_start",
+        "type": "TEXT"
+      },
+      {
+        "field": "PeriodEnd",
+        "column": "period_end",
+        "type": "TEXT"
       }
     ]
   },
