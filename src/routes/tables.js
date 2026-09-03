@@ -7,6 +7,7 @@ import {
   columnNameForField,
 } from '../schema-manifest.js';
 import { rowsToKeyedObject } from '../rowShape.js';
+import { requireAuth } from '../authMiddleware.js';
 
 function columnTypeForField(def, field) {
   const col = def.columns.find((c) => c.field === field);
@@ -21,13 +22,15 @@ function toBoundValue(value, type) {
 }
 
 export const tablesRoutes = new Elysia()
-  .get('/api/:table', async ({ params: { table } }) => {
+  .get('/api/:table', async ({ params: { table }, headers }) => {
+    requireAuth(headers);
     assertValidTable(table);
     const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
     return rowsToKeyedObject(rows);
   })
 
-  .get('/api/:table/:uuid', async ({ params: { table, uuid }, set }) => {
+  .get('/api/:table/:uuid', async ({ params: { table, uuid }, headers, set }) => {
+    requireAuth(headers);
     assertValidTable(table);
     const { rows } = await pool.query(
       `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "uuid" = $1`,
@@ -41,7 +44,8 @@ export const tablesRoutes = new Elysia()
     return fields;
   })
 
-  .post('/api/:table', async ({ params: { table }, body, set }) => {
+  .post('/api/:table', async ({ params: { table }, body, headers, set }) => {
+    requireAuth(headers);
     const def = assertValidTable(table);
     const record = body || {};
     const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
@@ -60,7 +64,8 @@ export const tablesRoutes = new Elysia()
     return { uuid };
   })
 
-  .put('/api/:table/:uuid', async ({ params: { table, uuid }, body, set }) => {
+  .put('/api/:table/:uuid', async ({ params: { table, uuid }, body, headers, set }) => {
+    requireAuth(headers);
     const def = assertValidTable(table);
     const record = body || {};
     const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
@@ -85,7 +90,8 @@ export const tablesRoutes = new Elysia()
     return { ok: true };
   })
 
-  .delete('/api/:table/:uuid', async ({ params: { table, uuid }, set }) => {
+  .delete('/api/:table/:uuid', async ({ params: { table, uuid }, headers, set }) => {
+    requireAuth(headers);
     assertValidTable(table);
     const result = await pool.query(`DELETE FROM "${table}" WHERE "uuid" = $1`, [uuid]);
     if (!result.rowCount) {

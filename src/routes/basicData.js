@@ -2,8 +2,11 @@ import { Elysia } from 'elysia';
 import { pool } from '../db.js';
 import { BASIC_DATA_MAP, CATEGORY_FILTERED_KEYS, selectColumnsSql } from '../schema-manifest.js';
 import { rowsToKeyedObject } from '../rowShape.js';
+import { requireAuth } from '../authMiddleware.js';
 
-export const basicDataRoutes = new Elysia().get('/api/basic-data', async () => {
+export const basicDataRoutes = new Elysia().get('/api/basic-data', async ({ headers }) => {
+  requireAuth(headers);
+
   const plainResults = await Promise.all(
     Object.entries(BASIC_DATA_MAP).map(async ([key, table]) => {
       const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);

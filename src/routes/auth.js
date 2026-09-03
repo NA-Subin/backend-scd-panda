@@ -127,7 +127,12 @@ export const authRoutes = new Elysia()
   // transport-truck credential flow only ever compare against a bcrypt
   // hash, so any account created outside this endpoint (e.g. via the
   // generic /api/:table POST) would never be able to log in.
-  .post('/api/auth/register', async ({ body, set }) => {
+  // Requires an existing logged-in session - otherwise anyone on the network
+  // could self-provision an officer/driver account (with whatever Position
+  // they like) with no admin involved at all.
+  .post('/api/auth/register', async ({ headers, body, set }) => {
+    requireAuth(headers);
+
     const { table, fields, password } = body || {};
 
     const passwordField = REGISTERABLE_TABLES[table];

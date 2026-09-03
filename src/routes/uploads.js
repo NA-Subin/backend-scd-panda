@@ -3,12 +3,17 @@ import { randomUUID } from 'crypto';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { pool } from '../db.js';
+import { requireAuth } from '../authMiddleware.js';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'panda');
 await mkdir(UPLOAD_DIR, { recursive: true });
 
 export const uploadRoutes = new Elysia()
-  .post('/panda/uploads', async ({ body, request, set }) => {
+  // GET below stays public - uploaded images are rendered via plain <img src>
+  // tags all over the app, which can't attach an Authorization header.
+  .post('/panda/uploads', async ({ body, request, headers, set }) => {
+    requireAuth(headers);
+
     const file = body?.pic;
     if (!file || typeof file === 'string') {
       set.status = 400;
