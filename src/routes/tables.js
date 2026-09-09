@@ -7,11 +7,42 @@ import {
   columnNameForField,
 } from '../schema-manifest.js';
 import { rowsToKeyedObject } from '../rowShape.js';
-import { requireAuth } from '../authMiddleware.js';
+import { requireAuth, requireAdmin } from '../authMiddleware.js';
 
 function columnTypeForField(def, field) {
   const col = def.columns.find((c) => c.field === field);
   return col ? col.type : 'TEXT';
+}
+
+// Editing an EXISTING position's permission flags can grant/revoke admin
+// rights, and editing/creating company records changes the legal entity
+// printed on every invoice - both restricted to admin here, rather than
+// relying on the Setting page's own tab visibility alone. Reads are
+// unaffected - other pages (Navbar, Choose, printing) legitimately need to
+// read these tables for every user.
+const ADMIN_ONLY_MODIFY_TABLES = new Set(['positions', 'company', 'company_history']);
+
+// Creating a brand-new position is left open - employee/InsertEmployee.js
+// also creates positions inline while onboarding a new employee, and that
+// path never includes AdminData in its payload, so it can't itself grant
+// admin rights. Company records, on the other hand, are only ever created
+// from Setting.js, so creating those is admin-only too.
+const ADMIN_ONLY_CREATE_TABLES = new Set(['company', 'company_history']);
+
+function requireAuthForCreate(table, headers) {
+  if (ADMIN_ONLY_CREATE_TABLES.has(table)) {
+    requireAdmin(headers);
+  } else {
+    requireAuth(headers);
+  }
+}
+
+function requireAuthForModify(table, headers) {
+  if (ADMIN_ONLY_MODIFY_TABLES.has(table)) {
+    requireAdmin(headers);
+  } else {
+    requireAuth(headers);
+  }
 }
 
 function toBoundValue(value, type) {
@@ -45,7 +76,7 @@ export const tablesRoutes = new Elysia()
   })
 
   .post('/api/:table', async ({ params: { table }, body, headers, set }) => {
-    requireAuth(headers);
+    requireAuthForCreate(table, headers);
     const def = assertValidTable(table);
     const record = body || {};
     const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
@@ -65,7 +96,7 @@ export const tablesRoutes = new Elysia()
   })
 
   .put('/api/:table/:uuid', async ({ params: { table, uuid }, body, headers, set }) => {
-    requireAuth(headers);
+    requireAuthForModify(table, headers);
     const def = assertValidTable(table);
     const record = body || {};
     const fields = Object.keys(record).filter((f) => f !== 'uuid' && f !== 'row_key');
@@ -91,7 +122,7 @@ export const tablesRoutes = new Elysia()
   })
 
   .delete('/api/:table/:uuid', async ({ params: { table, uuid }, headers, set }) => {
-    requireAuth(headers);
+    requireAuthForModify(table, headers);
     assertValidTable(table);
     const result = await pool.query(`DELETE FROM "${table}" WHERE "uuid" = $1`, [uuid]);
     if (!result.rowCount) {
