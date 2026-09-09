@@ -90,6 +90,32 @@ export const authRoutes = new Elysia()
 
   .get('/api/auth/me', ({ headers }) => requireAuth(headers))
 
+  // Re-verifies the caller's own password without issuing a new token or
+  // changing anything - used as a step-up confirmation before letting an
+  // already-logged-in admin into a sensitive area (e.g. the backup page),
+  // so a shared/unlocked browser session alone isn't enough to get in.
+  .post('/api/auth/verify-password', async ({ headers, body, set }) => {
+    const payload = requireAuth(headers);
+    const { password } = body || {};
+    if (!password) {
+      set.status = 400;
+      return { error: 'password is required' };
+    }
+
+    const table = payload.entityType === 'driver' ? 'employee_drivers' : 'employee_officers';
+    const { rows } = await pool.query(
+      `SELECT ${selectColumnsSql(table)} FROM "${table}" WHERE "id" = $1`,
+      [payload.id]
+    );
+    const row = rows[0];
+    if (!row || !(await bcrypt.compare(password, row.Password || ''))) {
+      set.status = 401;
+      return { error: 'รหัสผ่านไม่ถูกต้อง' };
+    }
+
+    return { ok: true };
+  })
+
   // Verifies the caller's current password against the bcrypt hash and
   // writes a freshly-hashed new one. Identity comes from the JWT, not the
   // request body, so a caller can only ever change their own password.
