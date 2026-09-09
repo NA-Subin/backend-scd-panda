@@ -2,8 +2,35 @@ import { Elysia } from 'elysia';
 import path from 'node:path';
 import { requireAdmin } from '../authMiddleware.js';
 import { runBackup, listBackups, pruneOldBackups, deleteBackup, BACKUP_DIR } from '../backup.js';
+import { verifyBackupPassword, resetBackupPassword } from '../backupAccess.js';
 
 export const backupRoutes = new Elysia()
+  // Shared gate password for the backup page itself (defaults to "admin",
+  // resettable below) - separate from anyone's personal login password.
+  // Still requireAdmin-gated so only admin-permission accounts can even
+  // attempt it, per the request that this stays admin-only end to end.
+  .post('/api/admin/backup-access/verify', async ({ headers, body, set }) => {
+    requireAdmin(headers);
+    const { password } = body || {};
+    const ok = await verifyBackupPassword(password);
+    if (!ok) {
+      set.status = 401;
+      return { error: 'รหัสผ่านไม่ถูกต้อง' };
+    }
+    return { ok: true };
+  })
+
+  .post('/api/admin/backup-access/reset', async ({ headers, body, set }) => {
+    requireAdmin(headers);
+    const { oldPassword, newPassword } = body || {};
+    if (!newPassword) {
+      set.status = 400;
+      return { error: 'newPassword is required' };
+    }
+    await resetBackupPassword(oldPassword, newPassword);
+    return { ok: true };
+  })
+
   .get('/api/admin/backups', async ({ headers }) => {
     requireAdmin(headers);
     const backups = await listBackups();
