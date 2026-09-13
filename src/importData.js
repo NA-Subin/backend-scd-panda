@@ -59,7 +59,20 @@ const TICKET_NAME_DISCRIMINATOR = {
 // tableName -> { fieldName -> { target: tableName } }
 const FK_FIELDS = {
   customers: { Company: { target: 'company' } },
-  employee_drivers: { Position: { target: 'positions' }, Registration: { target: 'truck_registration' } },
+  employee_drivers: {
+    Position: { target: 'positions' },
+    // Firebase used this one field for EITHER a truck_registration id
+    // (TruckType "รถใหญ่") OR a truck_small id (TruckType "รถเล็ก") - never
+    // validated, just convention. Postgres can't FK one column at two
+    // tables, so this splits into two real column pairs by TruckType
+    // instead - see split_employee_drivers_registration.sql.
+    Registration: {
+      splitByTruckType: {
+        'รถใหญ่': { target: 'truck_registration', field: 'Registration', column: 'registration', nameField: 'RegistrationName', nameColumn: 'registration_name' },
+        'รถเล็ก': { target: 'truck_small', field: 'RegistrationSmall', column: 'registration_small', nameField: 'RegistrationSmallName', nameColumn: 'registration_small_name' },
+      },
+    },
+  },
   employee_officers: { Position: { target: 'positions' }, GasStation: { target: 'depot_gas_stations' } },
   inspection: { Employee: { target: 'employee_drivers' }, employee: { target: 'employee_drivers' } },
   invoice: {
@@ -166,6 +179,30 @@ function classifyColumns(tableName, rows) {
   const columns = [];
 
   for (const field of fieldOrder) {
+    if (fkFields[field]?.splitByTruckType) {
+      // One source field fans out into a separate real column pair per
+      // TruckType - only the pair matching a given row's TruckType ever
+      // gets filled in (see the splitFk/splitFkNameFor handling below);
+      // the other pair stays NULL for that row.
+      for (const [truckType, dest] of Object.entries(fkFields[field].splitByTruckType)) {
+        usedNames.add(dest.column);
+        usedNames.add(dest.nameColumn);
+        columns.push({
+          field: dest.field,
+          column: dest.column,
+          type: 'UUID',
+          splitFk: { sourceField: field, truckType, target: dest.target },
+        });
+        columns.push({
+          field: dest.nameField,
+          column: dest.nameColumn,
+          type: 'TEXT',
+          splitFkNameFor: { sourceField: field, truckType },
+        });
+      }
+      continue;
+    }
+
     if (fkFields[field]) {
       const fkConfig = fkFields[field];
       let idColumn = toSnakeCase(field);
@@ -371,8 +408,8 @@ export function buildImportPlan(data) {
     sqlParts.push(`CREATE TABLE ${qTable} (\n${colDefs.join(',\n')}\n);`);
 
     for (const col of columns) {
-      if (!col.fk) continue;
-      fkConstraints.push({ table: tableName, column: col.column, targetTable: col.fk.target });
+      if (col.fk) fkConstraints.push({ table: tableName, column: col.column, targetTable: col.fk.target });
+      else if (col.splitFk) fkConstraints.push({ table: tableName, column: col.column, targetTable: col.splitFk.target });
     }
 
     if (rows.length > 0) {
@@ -403,6 +440,22 @@ export function buildImportPlan(data) {
               // Companion text column for a preceding FK field.
               const parsed = parseIdName(record[col.isFkNameFor]);
               const name = parsed ? parsed.name : record[col.isFkNameFor] ?? null;
+              vals.push(formatValue(name, 'TEXT'));
+            } else if (col.splitFk) {
+              // Only fill this pair in for the TruckType it belongs to -
+              // the row's value is meaningless for every other pair.
+              const matches = record.TruckType === col.splitFk.truckType;
+              const parsed = matches ? parseIdName(record[col.splitFk.sourceField]) : null;
+              const targetUuid = parsed ? uuidByTableId[col.splitFk.target]?.[parsed.id] : undefined;
+              if (matches && parsed && !targetUuid) {
+                const key = `${tableName}.${col.field}`;
+                fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
+              }
+              vals.push(formatValue(targetUuid || null, 'UUID'));
+            } else if (col.splitFkNameFor) {
+              const matches = record.TruckType === col.splitFkNameFor.truckType;
+              const parsed = matches ? parseIdName(record[col.splitFkNameFor.sourceField]) : null;
+              const name = matches ? (parsed ? parsed.name : record[col.splitFkNameFor.sourceField] ?? null) : null;
               vals.push(formatValue(name, 'TEXT'));
             } else {
               vals.push(formatValue(record[col.field], col.type));
@@ -570,8 +623,8 @@ export async function buildIncrementalImportPlan(data, pool) {
 
     if (isNewTable) {
       for (const col of columns) {
-        if (!col.fk) continue;
-        newTableFkConstraints.push({ qTable, column: col.column, target: col.fk.target });
+        if (col.fk) newTableFkConstraints.push({ qTable, column: col.column, target: col.fk.target });
+        else if (col.splitFk) newTableFkConstraints.push({ qTable, column: col.column, target: col.splitFk.target });
       }
     }
 
@@ -592,6 +645,26 @@ export async function buildIncrementalImportPlan(data, pool) {
           } else if (col.isFkNameFor) {
             const parsed = parseIdName(record[col.isFkNameFor]);
             const name = parsed ? parsed.name : (record[col.isFkNameFor] ?? null);
+            vals.push(formatValue(name, 'TEXT'));
+          } else if (col.splitFk) {
+            const matches = record.TruckType === col.splitFk.truckType;
+            const parsed = matches ? parseIdName(record[col.splitFk.sourceField]) : null;
+            if (parsed) {
+              pendingFkBackfill.push({
+                tableName,
+                qTable,
+                column: col.column,
+                rowUuid,
+                parsed,
+                fk: { target: col.splitFk.target },
+                record,
+              });
+            }
+            vals.push('NULL'); // resolved and filled in by the backfill pass below
+          } else if (col.splitFkNameFor) {
+            const matches = record.TruckType === col.splitFkNameFor.truckType;
+            const parsed = matches ? parseIdName(record[col.splitFkNameFor.sourceField]) : null;
+            const name = matches ? (parsed ? parsed.name : record[col.splitFkNameFor.sourceField] ?? null) : null;
             vals.push(formatValue(name, 'TEXT'));
           } else {
             vals.push(formatValue(record[col.field], col.type));

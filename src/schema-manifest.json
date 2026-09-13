@@ -723,6 +723,16 @@
         "field": "Phone-",
         "column": "phone-",
         "type": "TEXT"
+      },
+      {
+        "field": "RegistrationSmall",
+        "column": "registration_small",
+        "type": "UUID"
+      },
+      {
+        "field": "RegistrationSmallName",
+        "column": "registration_small_name",
+        "type": "TEXT"
       }
     ]
   },
