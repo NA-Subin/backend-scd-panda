@@ -15,7 +15,7 @@ export const adminRoutes = new Elysia()
       return { error: 'Missing "data" (the Firebase export JSON) in request body' };
     }
 
-    const { sql, manifest, summary, fkSummary } = buildImportPlan(data);
+    const { sql, manifest, summary, fkSummary, warnings } = buildImportPlan(data);
 
     const client = await pool.connect();
     try {
@@ -38,6 +38,7 @@ export const adminRoutes = new Elysia()
       summary,
       passwordsHashed: passwordResults,
       fkReferencesNotResolved: fkSummary,
+      warnings,
     };
   })
 
@@ -55,10 +56,8 @@ export const adminRoutes = new Elysia()
       return { error: 'Missing "data" (the Firebase export JSON) in request body' };
     }
 
-    const { sql, manifest, summary, fkSummary, manifestUpdates, totalNewRows } = await buildIncrementalImportPlan(
-      data,
-      pool
-    );
+    const { sql, manifest, summary, fkSummary, manifestUpdates, totalNewRows, warnings } =
+      await buildIncrementalImportPlan(data, pool);
 
     if (totalNewRows === 0) {
       return {
@@ -66,6 +65,7 @@ export const adminRoutes = new Elysia()
         totalNewRows: 0,
         summary,
         message: 'ไม่มีข้อมูลใหม่ที่ต้องเพิ่ม - ทุกแถวในไฟล์นี้มีอยู่ในฐานข้อมูลแล้ว',
+        warnings,
       };
     }
 
@@ -90,5 +90,6 @@ export const adminRoutes = new Elysia()
       columnsAdded: manifestUpdates,
       passwordsHashed: passwordResults,
       fkReferencesNotResolved: fkSummary,
+      warnings,
     };
   });

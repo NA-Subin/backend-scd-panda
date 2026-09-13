@@ -231,6 +231,7 @@ function parseFirebaseTables(data) {
   }
 
   const tables = {};
+  const warnings = [];
   function addTable(tableName, obj) {
     const rows = [];
     for (const key of Object.keys(obj)) {
@@ -247,7 +248,17 @@ function parseFirebaseTables(data) {
     const rows = [];
     for (const subKey of Object.keys(customersNode)) {
       const subVal = customersNode[subKey];
-      if (!subVal || typeof subVal !== 'object' || !CUSTOMER_CATEGORIES.has(subKey)) continue;
+      if (!subVal || typeof subVal !== 'object') continue;
+      if (!CUSTOMER_CATEGORIES.has(subKey)) {
+        // A category this importer doesn't know about yet (new in the
+        // source, or a typo) - skip it rather than guess, but say so loudly
+        // instead of silently dropping every row under it.
+        warnings.push(
+          `พบหมวดหมู่ลูกค้า "customers/${subKey}" ที่ไม่รู้จัก (${Object.keys(subVal).length} แถว) ` +
+            `ข้อมูลส่วนนี้ไม่ถูกนำเข้า ต้องเพิ่มหมวดหมู่นี้ในโค้ด (CUSTOMER_CATEGORIES) ก่อน`
+        );
+        continue;
+      }
       for (const rowKey of Object.keys(subVal)) {
         const val = subVal[rowKey];
         const record = val === null || typeof val !== 'object' ? { value: val } : { ...val };
@@ -284,11 +295,11 @@ function parseFirebaseTables(data) {
     throw err;
   }
 
-  return tables;
+  return { tables, warnings };
 }
 
 export function buildImportPlan(data) {
-  const tables = parseFirebaseTables(data);
+  const { tables, warnings } = parseFirebaseTables(data);
   const tableNames = Object.keys(tables).sort();
 
   // Every row gets its own fresh UUID up front, so (a) it can be used as this
@@ -300,6 +311,14 @@ export function buildImportPlan(data) {
   // Category (a merged table of 5 originally-separate sources) - nested one
   // level deeper there: {category: {id: uuid}}.
   const uuidByTableId = {};
+  // A duplicate "id" within one table (source data has had cases of this,
+  // e.g. companypayment) means the LAST row with that id silently wins every
+  // "id:name" FK resolution below - earlier rows sharing the id become
+  // unreachable as an FK target. Can't fix this without a business-rule
+  // decision (which row was actually meant), so at minimum warn loudly
+  // instead of resolving to a possibly-wrong row with no indication anything
+  // was ambiguous.
+  const duplicateIdTables = new Set();
   for (const [table, rows] of Object.entries(tables)) {
     uuidByTableRowKey[table] = {};
     uuidByTableId[table] = {};
@@ -309,11 +328,19 @@ export function buildImportPlan(data) {
       if (typeof record.id !== 'number') continue;
       if (table === 'customers') {
         const byCategory = (uuidByTableId[table][record.Category] ??= {});
+        if (record.id in byCategory) duplicateIdTables.add(`${table} (${record.Category})`);
         byCategory[record.id] = uuid;
       } else {
+        if (record.id in uuidByTableId[table]) duplicateIdTables.add(table);
         uuidByTableId[table][record.id] = uuid;
       }
     }
+  }
+  for (const label of duplicateIdTables) {
+    warnings.push(
+      `ตาราง "${label}" มีค่า id ซ้ำกันในข้อมูลต้นฉบับ - แถวที่ตารางอื่นอ้างอิงมาทาง id นี้อาจเชื่อมผิดแถว ` +
+        `(ระบบเชื่อมกับแถวล่าสุดที่เจอ id นี้เสมอ) ควรตรวจสอบ/แก้ไข id ซ้ำในระบบต้นทางก่อน`
+    );
   }
 
   const manifest = {};
@@ -404,7 +431,7 @@ export function buildImportPlan(data) {
 
   const fkSummary = Object.entries(fkNullCounts).map(([key, count]) => ({ field: key, unresolvedRefs: count }));
 
-  return { sql: sqlParts.join('\n'), manifest, summary, fkSummary };
+  return { sql: sqlParts.join('\n'), manifest, summary, fkSummary, warnings };
 }
 
 function quoteIdentPlain(name) {
@@ -433,7 +460,7 @@ function quoteIdentPlain(name) {
 // before, it's created fresh (same as buildImportPlan would for it) with
 // every row treated as new.
 export async function buildIncrementalImportPlan(data, pool) {
-  const tables = parseFirebaseTables(data);
+  const { tables, warnings } = parseFirebaseTables(data);
   const tableNames = Object.keys(tables).sort();
 
   // Shallow copy so this function stays a pure "compute the plan" - the
@@ -501,17 +528,27 @@ export async function buildIncrementalImportPlan(data, pool) {
     summary.push({ table: tableName, newRows: newRows.length, skippedExisting: rows.length - newRows.length });
 
     const idMap = {};
+    let hasDuplicateId = false;
     for (const { rowKey, record } of newRows) {
       const uuid = crypto.randomUUID();
       freshUuidByRowKey[`${tableName} ${rowKey}`] = uuid;
       if (typeof record.id !== 'number') continue;
       if (tableName === 'customers') {
-        (idMap[record.Category] ??= {})[record.id] = uuid;
+        const byCategory = (idMap[record.Category] ??= {});
+        if (record.id in byCategory) hasDuplicateId = true;
+        byCategory[record.id] = uuid;
       } else {
+        if (record.id in idMap) hasDuplicateId = true;
         idMap[record.id] = uuid;
       }
     }
     freshIdMapByTable[tableName] = idMap;
+    if (hasDuplicateId) {
+      warnings.push(
+        `ตาราง "${tableName}" มีค่า id ซ้ำกันในแถวใหม่ที่กำลังนำเข้า - แถวที่ตารางอื่นอ้างอิงมาทาง id นี้อาจ` +
+          `เชื่อมผิดแถว (ระบบเชื่อมกับแถวล่าสุดที่เจอ id นี้เสมอ) ควรตรวจสอบ/แก้ไข id ซ้ำในระบบต้นทางก่อน`
+      );
+    }
   }
 
   // Two known tables FK into each other (employee_drivers.Registration ->
@@ -683,5 +720,6 @@ export async function buildIncrementalImportPlan(data, pool) {
     fkSummary,
     manifestUpdates,
     totalNewRows,
+    warnings,
   };
 }
