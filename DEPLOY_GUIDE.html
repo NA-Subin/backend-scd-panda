@@ -151,6 +151,15 @@
   .cheat-card h4{ font-size:13px; font-weight:800; color:var(--navy); margin-bottom:8px; }
   .cheat-card pre{ margin:0; font-size:12px; }
 
+  .step-body h3{ font-size:15px; font-weight:800; color:var(--navy); margin:24px 0 10px; }
+  .step-body h3:first-child{ margin-top:0; }
+  .trio{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:6px 0 18px; }
+  .trio .path-card{ margin:0; }
+  .trio .path-card .glyph{ font-size:20px; line-height:1; }
+  .trio .path-card h4{ margin-bottom:6px; }
+  .trio .path-card p{ font-size:13.5px; color:var(--muted); margin-bottom:0; }
+  .glossary td:first-child{ white-space:nowrap; font-weight:700; color:var(--navy); }
+
   ::selection{ background:var(--navy-soft); }
 
   @media print{
@@ -163,6 +172,7 @@
     .sidebar{ display:none; }
     .content, .topbar{ padding-left:20px; padding-right:20px; }
     .cheat-grid{ grid-template-columns:1fr; }
+    .trio{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -215,18 +225,86 @@
       </div>
 
       <section class="step" id="overview">
-        <div class="step-head"><div class="step-num">0</div><h2>ภาพรวมระบบ</h2></div>
+        <div class="step-head"><div class="step-num">0</div><h2>ภาพรวมระบบ และสิ่งที่ต้องเตรียมให้ครบก่อนเริ่ม</h2></div>
         <div class="step-body">
-          <p>ระบบแบ่งเป็น 2 โปรเจกต์แยกกัน ต้องติดตั้งทั้งคู่และรันคู่กันเสมอ:</p>
-          <ul>
-            <li><b>backend-scd-panda</b> — เซิร์ฟเวอร์ API เขียนด้วย Bun + ElysiaJS เก็บข้อมูลใน PostgreSQL</li>
-            <li><b>frontend-scd-panda</b> — หน้าเว็บที่ผู้ใช้งานเห็น เขียนด้วย React + MUI หลัง build แล้วเป็นไฟล์ static ล้วน</li>
-          </ul>
           <p>
-            ระบบเดิมก่อนหน้านี้ใช้ Firebase (Realtime Database + Firebase Auth) ทั้งหมด — เวอร์ชันนี้ย้ายมาใช้ PostgreSQL
-            แล้ว รายละเอียดเชิงเทคนิคว่าทำไมถึงย้าย และวิธี import ข้อมูลล่าสุดจากระบบเดิม (ถ้ายังมีอยู่) มีอธิบายไว้
-            ในคู่มือผู้ใช้ (<code>/manual.html</code> ของเว็บที่ deploy เสร็จแล้ว หัวข้อ "คำนำ") ไม่ซ้ำเนื้อหาไว้ในนี้อีก
+            เอกสารนี้เขียนให้อ่านได้แม้ไม่เคยดูแลระบบลักษณะนี้มาก่อน ถ้าเป็นครั้งแรกที่ต้องรับช่วงต่อ
+            แนะนำให้อ่านหัวข้อนี้ให้ครบก่อนเริ่มขั้นตอนที่ 1 — จะช่วยให้เข้าใจภาพรวมและไม่พลาดไฟล์ที่ต้องขอมาก่อน
           </p>
+
+          <h3>ระบบนี้ประกอบด้วยอะไรบ้าง</h3>
+          <div class="trio">
+            <div class="path-card">
+              <div class="glyph">🖥️</div>
+              <h4>Frontend</h4>
+              <p>หน้าเว็บที่พนักงาน/ผู้ใช้เห็นและกดใช้งานจริง เหมือน "หน้าร้าน" — ตัวมันเองไม่เก็บข้อมูลอะไร แค่ไปขอข้อมูลจาก backend มาแสดง</p>
+            </div>
+            <div class="path-card">
+              <div class="glyph">⚙️</div>
+              <h4>Backend</h4>
+              <p>ตัวกลางที่รับคำขอจากหน้าเว็บ ไปอ่าน/เขียนฐานข้อมูลให้ เหมือน "พนักงานหลังร้าน" ที่วิ่งเข้าคลังไปหยิบของมาให้ลูกค้าหน้าร้าน</p>
+            </div>
+            <div class="path-card">
+              <div class="glyph">🗄️</div>
+              <h4>ฐานข้อมูล (PostgreSQL)</h4>
+              <p>ที่เก็บข้อมูลจริงทั้งหมดของบริษัท เช่น รายชื่อพนักงาน รถ ลูกค้า ใบเสร็จ เหมือน "คลังสินค้า" ที่เก็บของจริงไว้ข้างใน</p>
+            </div>
+          </div>
+
+          <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div>
+              <b>สิ่งสำคัญที่สุดที่ต้องเข้าใจก่อนเริ่ม:</b> repo ทั้ง 2 อันบน GitHub (backend-scd-panda, frontend-scd-panda)
+              มีแค่ "พิมพ์เขียว" ของระบบ คือตัวโปรแกรมเปล่า ๆ — <b>ไม่มีข้อมูลจริงของบริษัทติดไปด้วยเลยแม้แต่แถวเดียว</b>
+              เหมือนได้แบบแปลนบ้านมา แต่ยังไม่มีของในบ้าน เอาแค่ 2 repo นี้ไปติดตั้งอย่างเดียว จะได้ระบบที่เปิดขึ้นมาแล้ว
+              "ว่างเปล่า" ไม่มีรายชื่อพนักงาน ไม่มีข้อมูลรถ ไม่มีอะไรทั้งนั้น ต้องมี<b>ไฟล์ข้อมูลจริงอีกไฟล์หนึ่งแยกต่างหาก</b>
+              มาเติมเข้าไป (ดูรายการที่ต้องขอด้านล่าง)
+            </div>
+          </div>
+
+          <h3>ทำไมข้อมูลถึงไม่อยู่ใน GitHub ไปด้วยเลย</h3>
+          <p>
+            เป็นความตั้งใจ ไม่ใช่ทำตกหล่น ด้วยเหตุผล 2 ข้อ: (1) ข้อมูลจริงของบริษัท เช่น ชื่อ ที่อยู่ เบอร์โทร ยอดเงิน
+            เป็นข้อมูลอ่อนไหวที่ไม่ควรถูกเก็บถาวรไว้ใน Git — ต่อให้ลบไฟล์ออกทีหลัง ประวัติเก่าใน Git ก็ยังมีข้อมูลนั้น
+            หลงเหลืออยู่ กู้คืนย้อนหลังได้เสมอ (2) repo โค้ดกับข้อมูลจริงเป็นคนละเรื่องกัน โค้ดควรอัปเดตผ่าน Git ได้เรื่อย ๆ
+            โดยไม่กระทบข้อมูลลูกค้าที่ใช้งานอยู่จริง ไฟล์ข้อมูลจึงต้องส่งมอบกันโดยตรง (เช่น ก็อปใส่ USB ไดรฟ์ หรือส่งผ่าน
+            ช่องทางที่ตั้งรหัสผ่าน/ปลอดภัย) ไม่ใช่ผ่าน GitHub
+          </p>
+
+          <h3>ต้องได้รับ/เตรียมอะไรให้ครบก่อนเริ่มขั้นตอนที่ 1</h3>
+          <div class="checklist">
+            <label><input type="checkbox"><span>สิทธิ์เข้าถึง repo ทั้ง 2 อัน (backend-scd-panda, frontend-scd-panda) — โค้ดอย่างเดียว ไม่มีข้อมูล</span></label>
+            <label><input type="checkbox"><span><b>ไฟล์ข้อมูลจริงล่าสุด 1 ไฟล์</b> เลือกอย่างใดอย่างหนึ่ง: ไฟล์สำรอง <code>.sql</code> จากระบบ PostgreSQL เดิม (ถ้าเคยมีระบบนี้รันอยู่แล้ว — สมบูรณ์ที่สุด แนะนำที่สุด) หรือไฟล์ Firebase Realtime Database export (<code>.json</code>) ถ้ายังไม่เคยมีระบบ PostgreSQL รันมาก่อนเลย</span></label>
+            <label><input type="checkbox"><span>ถ้าได้ไฟล์ <code>.sql</code> มา — ต้องได้ไฟล์ <code>src/schema-manifest.json</code> จากระบบต้นทางมาด้วยเสมอ (ดูเหตุผลในขั้นตอนที่ 5)</span></label>
+          </div>
+          <p>
+            ถ้าคุณเป็นคนดูแลระบบเดิมอยู่แล้วและกำลังจะส่งมอบให้คนอื่นไปติดตั้งเครื่องใหม่ ให้เข้าหน้า <b>"เลือกเมนู" →
+            "สำรองข้อมูล"</b> ของระบบปัจจุบัน กดสร้างไฟล์ <code>.sql</code> ล่าสุด แล้วส่งไฟล์นั้นพร้อม
+            <code>schema-manifest.json</code> ให้ผู้ติดตั้งโดยตรง ถ้ายังไม่เคยมีระบบนี้รันมาก่อนเลย (ตั้งใหม่ครั้งแรกจาก
+            ระบบเดิมที่เป็น Firebase) ให้ export ข้อมูลจาก Firebase Console แทน (อธิบายละเอียดในขั้นตอนที่ 5 กรณี B)
+          </p>
+
+          <h3>ประวัติย่อ: ทำไมเดิมเป็นไฟล์ JSON ไม่ใช่ PostgreSQL</h3>
+          <p>
+            ระบบรุ่นแรกสุดใช้ Firebase Realtime Database ซึ่งเก็บข้อมูลทั้งระบบเป็นไฟล์ JSON ก้อนเดียวขนาดใหญ่ (export
+            ออกมาดูได้จาก Firebase Console) ไม่ใช่ตารางแบบฐานข้อมูลทั่วไป เวอร์ชันนี้ย้ายข้อมูลทั้งหมดมาเก็บใน PostgreSQL
+            แทน เพื่อให้ค้นหา/กรอง/ออกรายงานข้อมูลจำนวนมากได้เร็วและยืดหยุ่นกว่า และไม่ผูกกับบริการของ Google ระยะยาว —
+            รายละเอียดเชิงลึกกว่านี้ (เช่นตารางเปรียบเทียบ และวิธี import ข้อมูลล่าสุดจากของเดิมเพิ่มเติมภายหลัง) อธิบายไว้
+            ในคู่มือผู้ใช้ที่ <code>/manual.html</code> ของเว็บที่ deploy เสร็จแล้ว หัวข้อ "คำนำ"
+          </p>
+
+          <h3>ศัพท์ที่เจอบ่อยในคู่มือนี้</h3>
+          <div class="tablewrap">
+            <table class="envtable glossary">
+              <tbody>
+                <tr><td>PostgreSQL</td><td>โปรแกรมฐานข้อมูลที่ระบบนี้ใช้เก็บข้อมูลจริงทั้งหมด (มักเรียกย่อว่า "Postgres")</td></tr>
+                <tr><td>ไฟล์ .sql</td><td>ไฟล์ข้อความที่รวมคำสั่งสร้างตาราง/ใส่ข้อมูลไว้ รันไฟล์นี้ครั้งเดียวก็ได้ฐานข้อมูลครบเลย มักได้มาจากการ "สำรองข้อมูล"</td></tr>
+                <tr><td>Firebase / Realtime Database</td><td>บริการฐานข้อมูลของ Google ที่ระบบรุ่นเดิมเคยใช้ ก่อนย้ายมาเป็น PostgreSQL</td></tr>
+                <tr><td>Firebase export (.json)</td><td>ไฟล์ข้อมูลทั้งหมดที่ดาวน์โหลดออกมาจาก Firebase Console ของระบบเดิม</td></tr>
+                <tr><td>.env</td><td>ไฟล์ตั้งค่าที่เก็บรหัส/ที่อยู่ต่าง ๆ เฉพาะของแต่ละเครื่อง (ไม่อยู่ใน GitHub ด้วยเหตุผลความปลอดภัยเดียวกับข้อมูลลูกค้า) ต้องสร้างเองทุกครั้งที่ติดตั้งใหม่</td></tr>
+                <tr><td>Deploy</td><td>การนำระบบขึ้นไปรันบนเครื่อง/เซิร์ฟเวอร์จริงให้ผู้ใช้เข้าถึงได้ (ต่างจากการรันทดสอบในเครื่องตัวเอง)</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -305,7 +383,10 @@ cp .env.example .env</code></pre>
       <section class="step" id="import">
         <div class="step-head"><div class="step-num">5</div><h2>นำเข้าข้อมูลเริ่มต้น</h2></div>
         <div class="step-body">
-          <p>ฐานข้อมูลที่เพิ่งสร้างยังไม่มีตารางใด ๆ เลย เลือกวิธีนำเข้าข้อมูลให้ตรงกับสถานการณ์:</p>
+          <p>
+            ฐานข้อมูลที่เพิ่งสร้างยังไม่มีตารางใด ๆ เลย ต้องมีไฟล์ข้อมูลตามที่ระบุไว้ในขั้นตอนที่ 0 (<code>.sql</code>
+            หรือ Firebase export) อยู่ในมือก่อน แล้วเลือกวิธีนำเข้าให้ตรงกับไฟล์ที่มี:
+          </p>
 
           <div class="path-card recommended">
             <h4>กรณี A — มีไฟล์สำรองข้อมูล (.sql) จากระบบที่ใช้งานอยู่แล้ว <span class="badge-recommend">แนะนำ</span></h4>
