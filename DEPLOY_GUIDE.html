@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คู่มือติดตั้งระบบ PandaStar Oil</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+  :root{
+    --navy:#244873; --navy-deep:#172e4a; --navy-soft:#e8eef5;
+    --red:#cf444a; --red-soft:#fbe9ea; --red-ink:#8a1f26;
+    --bg:#F4F6F9; --surface:#ffffff;
+    --ink:#1e293b; --muted:#5b6b82;
+    --line:#dfe6ee;
+    --success:#1f7a3d; --success-soft:#e6f4ea;
+    --amber:#a05a00; --amber-soft:#fdf1df; --amber-ink:#6b4700;
+    --code-bg:#0f1b2b; --code-ink:#d8e4f2;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --navy:#5f8fc2; --navy-deep:#0f1f33; --navy-soft:#152a42;
+      --red:#e08186; --red-soft:#3a2023; --red-ink:#f3b4b8;
+      --bg:#0d1420; --surface:#131f30;
+      --ink:#e6ecf5; --muted:#9fb0c6;
+      --line:#243348;
+      --success:#6fce8f; --success-soft:#122a1c;
+      --amber:#e0b876; --amber-soft:#332711; --amber-ink:#f2cd98;
+      --code-bg:#080f19; --code-ink:#d8e4f2;
+    }
+  }
+  :root[data-theme="dark"]{
+    --navy:#5f8fc2; --navy-deep:#0f1f33; --navy-soft:#152a42;
+    --red:#e08186; --red-soft:#3a2023; --red-ink:#f3b4b8;
+    --bg:#0d1420; --surface:#131f30;
+    --ink:#e6ecf5; --muted:#9fb0c6;
+    --line:#243348;
+    --success:#6fce8f; --success-soft:#122a1c;
+    --amber:#e0b876; --amber-soft:#332711; --amber-ink:#f2cd98;
+    --code-bg:#080f19; --code-ink:#d8e4f2;
+  }
+
+  *{box-sizing:border-box}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Sarabun",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  code, .mono{ font-family:"JetBrains Mono","Consolas",monospace; }
+  h1,h2,h3,h4{ text-wrap:balance; margin:0; }
+  p{ margin:0; }
+
+  .layout{ display:flex; min-height:100vh; }
+
+  .sidebar{
+    width:270px; flex-shrink:0; background:var(--navy-deep); color:#fff;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:22px 16px 24px; display:flex; flex-direction:column; gap:14px;
+  }
+  .brand{ padding:2px 8px 14px; border-bottom:1px solid rgba(255,255,255,.12); }
+  .brand .name{ font-weight:800; font-size:18px; letter-spacing:.2px; }
+  .brand .sub{ font-size:12px; color:#b9c7db; margin-top:3px; }
+  .navlist{ display:flex; flex-direction:column; gap:2px; padding:0 4px; }
+  .navlink{
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px;
+    color:#dbe4f0; text-decoration:none; font-size:13.5px; font-weight:600;
+  }
+  .navlink:hover{ background:rgba(255,255,255,.08); }
+  .navlink .num{
+    display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
+    background:rgba(255,255,255,.14); font-size:11px; font-weight:800; flex-shrink:0;
+  }
+  .sidebar-foot{ margin-top:auto; padding:12px 8px 0; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:#8ea1ba; line-height:1.6; }
+
+  .main{ flex:1; min-width:0; }
+  .topbar{
+    position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line);
+    padding:14px 40px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .topbar .crumb{ font-size:13px; color:var(--muted); font-weight:600; }
+  .printbtn{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px;
+    background:var(--surface); border:1px solid var(--line); color:var(--ink); font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  }
+  .printbtn:hover{ border-color:var(--navy); color:var(--navy); }
+
+  .content{ max-width:900px; margin:0 auto; padding:36px 40px 100px; }
+
+  .hero{ padding-bottom:26px; border-bottom:1px solid var(--line); margin-bottom:34px; }
+  .hero .eyebrow{ font-size:12.5px; font-weight:700; color:var(--red); letter-spacing:.06em; text-transform:uppercase; }
+  .hero h1{ font-size:32px; font-weight:800; color:var(--navy); margin-top:8px; }
+  .hero .lede{ font-size:15.5px; color:var(--muted); margin-top:12px; line-height:1.75; max-width:70ch; }
+  .repo-links{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .repo-links a{
+    display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:var(--navy);
+    background:var(--navy-soft); border:1px solid var(--line); padding:7px 13px; border-radius:20px; text-decoration:none;
+  }
+  .repo-links a:hover{ border-color:var(--navy); }
+
+  section.step{ margin-bottom:44px; scroll-margin-top:80px; }
+  .step-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .step-num{
+    display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px;
+    background:var(--navy); color:#fff; font-weight:800; font-size:15px; flex-shrink:0;
+  }
+  .step-head h2{ font-size:21px; font-weight:800; color:var(--navy); }
+  .step-body{ padding-left:46px; }
+  .step-body p{ font-size:14.5px; line-height:1.8; color:var(--ink); margin-bottom:12px; }
+  .step-body ul, .step-body ol{ margin:10px 0 14px; padding-left:22px; display:flex; flex-direction:column; gap:8px; }
+  .step-body li{ font-size:14.5px; line-height:1.75; }
+
+  pre{
+    background:var(--code-bg); color:var(--code-ink); padding:14px 16px; border-radius:10px;
+    overflow-x:auto; font-size:13px; line-height:1.7; margin:12px 0;
+  }
+  pre code{ font-family:"JetBrains Mono","Consolas",monospace; }
+  .step-body code:not(pre code){
+    background:var(--navy-soft); color:var(--navy); padding:1px 6px; border-radius:5px; font-size:13px;
+  }
+
+  table.envtable{ width:100%; border-collapse:collapse; margin:12px 0 16px; font-size:13.5px; }
+  table.envtable th, table.envtable td{ text-align:left; padding:9px 12px; border:1px solid var(--line); vertical-align:top; }
+  table.envtable th{ background:var(--navy-soft); color:var(--navy); font-weight:800; }
+  .tablewrap{ overflow-x:auto; }
+
+  .note{
+    display:flex; gap:10px; align-items:flex-start; margin:14px 0; padding:12px 14px;
+    background:var(--amber-soft); border-radius:10px; font-size:13.5px; line-height:1.65; color:var(--amber-ink);
+  }
+  .note svg{ flex-shrink:0; margin-top:2px; }
+  .danger{ background:var(--red-soft); color:var(--red-ink); }
+
+  .path-card{
+    border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:14px 0; background:var(--surface);
+  }
+  .path-card h4{ font-size:14.5px; font-weight:800; color:var(--ink); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+  .path-card.recommended{ border-color:var(--success); }
+  .badge-recommend{
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--success); background:var(--success-soft); padding:2px 8px; border-radius:10px;
+  }
+
+  .checklist{ display:flex; flex-direction:column; gap:10px; margin:14px 0; }
+  .checklist label{
+    display:flex; align-items:flex-start; gap:10px; font-size:14px; line-height:1.6; padding:11px 14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px; cursor:pointer;
+  }
+  .checklist input{ margin-top:3px; flex-shrink:0; width:16px; height:16px; accent-color:var(--navy); }
+  .checklist label:has(input:checked){ background:var(--success-soft); border-color:var(--success); }
+  .checklist label:has(input:checked) span{ text-decoration:line-through; color:var(--muted); }
+
+  .cheat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .cheat-card{ border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--surface); }
+  .cheat-card h4{ font-size:13px; font-weight:800; color:var(--navy); margin-bottom:8px; }
+  .cheat-card pre{ margin:0; font-size:12px; }
+
+  ::selection{ background:var(--navy-soft); }
+
+  @media print{
+    .sidebar, .topbar{ display:none; }
+    .content{ max-width:none; padding:0 12px; }
+    section.step{ break-inside:avoid; }
+    body{ background:#fff; }
+  }
+  @media (max-width:900px){
+    .sidebar{ display:none; }
+    .content, .topbar{ padding-left:20px; padding-right:20px; }
+    .cheat-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="name">คู่มือติดตั้งระบบ</div>
+      <div class="sub">PandaStar Oil — สำหรับผู้ส่งมอบ/ผู้ดูแลระบบ</div>
+    </div>
+    <div class="navlist">
+      <a class="navlink" href="#overview"><span class="num">0</span>ภาพรวมระบบ</a>
+      <a class="navlink" href="#prereq"><span class="num">1</span>สิ่งที่ต้องเตรียม</a>
+      <a class="navlink" href="#clone"><span class="num">2</span>โคลนโค้ด</a>
+      <a class="navlink" href="#database"><span class="num">3</span>เตรียมฐานข้อมูล</a>
+      <a class="navlink" href="#backend-env"><span class="num">4</span>ตั้งค่า Backend</a>
+      <a class="navlink" href="#import"><span class="num">5</span>นำเข้าข้อมูล</a>
+      <a class="navlink" href="#run-backend"><span class="num">6</span>รัน Backend</a>
+      <a class="navlink" href="#frontend"><span class="num">7</span>ตั้งค่า Frontend</a>
+      <a class="navlink" href="#deploy-frontend"><span class="num">8</span>Deploy Frontend</a>
+      <a class="navlink" href="#security"><span class="num">9</span>เช็กลิสต์ความปลอดภัย</a>
+      <a class="navlink" href="#maintenance"><span class="num">10</span>ดูแลรักษาต่อเนื่อง</a>
+      <a class="navlink" href="#cheatsheet"><span class="num">11</span>คำสั่งที่ใช้บ่อย</a>
+    </div>
+    <div class="sidebar-foot">เอกสารนี้ใช้สำหรับติดตั้ง/ส่งมอบระบบเท่านั้น ไม่ใช่คู่มือการใช้งาน — คู่มือใช้งานอยู่ที่ /manual.html ของเว็บที่ deploy แล้ว</div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="crumb">คู่มือติดตั้งระบบ</span>
+      <button class="printbtn" onclick="window.print()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        พิมพ์คู่มือ
+      </button>
+    </div>
+
+    <div class="content">
+      <div class="hero">
+        <div class="eyebrow">คู่มือติดตั้ง · สำหรับส่งมอบระบบ</div>
+        <h1>ติดตั้งระบบ PandaStar Oil บนเซิร์ฟเวอร์ใหม่</h1>
+        <p class="lede">
+          เอกสารนี้เขียนสำหรับผู้ที่จะนำโค้ดจาก GitHub ไปติดตั้งบนเครื่อง/เซิร์ฟเวอร์ใหม่ทั้งหมด
+          (เช่น ส่งมอบระบบให้ลูกค้าไปดูแลเอง) เรียงเป็นขั้นตอนตามลำดับที่ต้องทำจริง ตั้งแต่เตรียมฐานข้อมูล
+          จนถึงเปิดเว็บใช้งานได้ ใช้เวลาทำจริงประมาณ 30–60 นาทีถ้าเตรียมข้อมูลไว้ครบ
+        </p>
+        <div class="repo-links">
+          <a href="https://github.com/NA-Subin/backend-scd-panda" target="_blank" rel="noopener">📦 backend-scd-panda</a>
+          <a href="https://github.com/NA-Subin/frontend-scd-panda" target="_blank" rel="noopener">📦 frontend-scd-panda</a>
+        </div>
+      </div>
+
+      <section class="step" id="overview">
+        <div class="step-head"><div class="step-num">0</div><h2>ภาพรวมระบบ</h2></div>
+        <div class="step-body">
+          <p>ระบบแบ่งเป็น 2 โปรเจกต์แยกกัน ต้องติดตั้งทั้งคู่และรันคู่กันเสมอ:</p>
+          <ul>
+            <li><b>backend-scd-panda</b> — เซิร์ฟเวอร์ API เขียนด้วย Bun + ElysiaJS เก็บข้อมูลใน PostgreSQL</li>
+            <li><b>frontend-scd-panda</b> — หน้าเว็บที่ผู้ใช้งานเห็น เขียนด้วย React + MUI หลัง build แล้วเป็นไฟล์ static ล้วน</li>
+          </ul>
+          <p>
+            ระบบเดิมก่อนหน้านี้ใช้ Firebase (Realtime Database + Firebase Auth) ทั้งหมด — เวอร์ชันนี้ย้ายมาใช้ PostgreSQL
+            แล้ว รายละเอียดเชิงเทคนิคว่าทำไมถึงย้าย และวิธี import ข้อมูลล่าสุดจากระบบเดิม (ถ้ายังมีอยู่) มีอธิบายไว้
+            ในคู่มือผู้ใช้ (<code>/manual.html</code> ของเว็บที่ deploy เสร็จแล้ว หัวข้อ "คำนำ") ไม่ซ้ำเนื้อหาไว้ในนี้อีก
+          </p>
+        </div>
+      </section>
+
+      <section class="step" id="prereq">
+        <div class="step-head"><div class="step-num">1</div><h2>สิ่งที่ต้องเตรียมก่อนเริ่ม</h2></div>
+        <div class="step-body">
+          <div class="tablewrap">
+            <table class="envtable">
+              <thead><tr><th style="width:24%">โปรแกรม</th><th style="width:38%">ใช้ทำอะไร</th><th>ดาวน์โหลด</th></tr></thead>
+              <tbody>
+                <tr><td><b>Bun</b></td><td>รันเซิร์ฟเวอร์ backend</td><td>bun.sh</td></tr>
+                <tr><td><b>Node.js</b> (LTS)</td><td>build หน้าเว็บ frontend</td><td>nodejs.org</td></tr>
+                <tr><td><b>PostgreSQL</b> 14+</td><td>ฐานข้อมูลหลัก</td><td>postgresql.org/download</td></tr>
+                <tr><td><b>git</b></td><td>โคลนโค้ดจาก GitHub</td><td>git-scm.com</td></tr>
+                <tr><td>เว็บเซิร์ฟเวอร์ static</td><td>เผยแพร่หน้าเว็บที่ build แล้ว (nginx/Apache/IIS/Firebase Hosting)</td><td>แล้วแต่เลือกใช้</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>ไม่ต้องติดตั้ง Postgres extension เพิ่มเติมใด ๆ — ระบบสร้างค่า UUID ฝั่งโค้ดเอง ไม่ได้พึ่งฟังก์ชันของฐานข้อมูล</p>
+        </div>
+      </section>
+
+      <section class="step" id="clone">
+        <div class="step-head"><div class="step-num">2</div><h2>โคลนโค้ดทั้งสอง repo</h2></div>
+        <div class="step-body">
+          <pre><code>git clone https://github.com/NA-Subin/backend-scd-panda.git
+git clone https://github.com/NA-Subin/frontend-scd-panda.git</code></pre>
+          <p>จะได้ 2 โฟลเดอร์แยกกัน ทำงานกับแต่ละโฟลเดอร์ตามขั้นตอนต่อไปนี้</p>
+        </div>
+      </section>
+
+      <section class="step" id="database">
+        <div class="step-head"><div class="step-num">3</div><h2>เตรียมฐานข้อมูล PostgreSQL</h2></div>
+        <div class="step-body">
+          <p>
+            ระบบต่อฐานข้อมูลโดยกำหนด <code>search_path</code> ไปที่ <b>schema ชื่อ <code>scd_panda</code> โดยเฉพาะ</b>
+            (ไม่ใช่ schema <code>public</code> เริ่มต้น) ต้องสร้างทั้งฐานข้อมูลและ schema ก่อน:
+          </p>
+          <pre><code>CREATE DATABASE scd_panda;
+
+\c scd_panda
+CREATE SCHEMA IF NOT EXISTS scd_panda;</code></pre>
+          <p><b>แนะนำสำหรับใช้งานจริง</b> — สร้างบัญชีเฉพาะสำหรับแอป แทนการใช้ superuser <code>postgres</code> ตรง ๆ:</p>
+          <pre><code>CREATE ROLE scd_panda_app WITH LOGIN PASSWORD 'ตั้งรหัสผ่านที่นี่';
+GRANT ALL ON SCHEMA scd_panda TO scd_panda_app;
+GRANT ALL ON ALL TABLES IN SCHEMA scd_panda TO scd_panda_app;
+-- สำคัญ: ตารางทั้งหมดจะถูกสร้างขึ้นเองตอนนำเข้าข้อมูล (ขั้นตอนที่ 5) ซึ่งยังไม่มีอยู่ ณ ตอนนี้
+ALTER DEFAULT PRIVILEGES IN SCHEMA scd_panda GRANT ALL ON TABLES TO scd_panda_app;</code></pre>
+          <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>ถ้าข้ามขั้นตอนสร้าง role เฉพาะไปก่อน ใช้ <code>postgres</code> ไปพลาง ๆ ก็ได้ แต่ควรกลับมาทำก่อนใช้งานจริงกับข้อมูลลูกค้า</div>
+        </div>
+      </section>
+
+      <section class="step" id="backend-env">
+        <div class="step-head"><div class="step-num">4</div><h2>ตั้งค่า Backend (ไฟล์ .env)</h2></div>
+        <div class="step-body">
+          <pre><code>cd backend-scd-panda
+cp .env.example .env</code></pre>
+          <p>แก้ค่าในไฟล์ <code>.env</code> ให้ตรงกับเครื่อง/เซิร์ฟเวอร์จริง:</p>
+          <div class="tablewrap">
+            <table class="envtable">
+              <thead><tr><th style="width:26%">ตัวแปร</th><th>คำอธิบาย</th></tr></thead>
+              <tbody>
+                <tr><td><code>PGHOST / PGPORT / PGDATABASE / PGSCHEMA / PGUSER / PGPASSWORD</code></td><td>ค่าเชื่อมต่อฐานข้อมูลตามที่สร้างไว้ในขั้นตอนที่ 3</td></tr>
+                <tr><td><code>JWT_SECRET</code></td><td>ข้อความลับใช้เซ็นรหัสเข้าสู่ระบบ <b>ต้องตั้งใหม่ทุกครั้งที่ติดตั้งระบบใหม่</b> สร้างค่าสุ่มปลอดภัยด้วย <code>openssl rand -hex 32</code></td></tr>
+                <tr><td><code>PORT</code></td><td>พอร์ตที่ backend จะรัน (ค่าเริ่มต้น 4000)</td></tr>
+                <tr><td><code>CORS_ORIGIN</code></td><td>โดเมนของ frontend จริงที่อนุญาตให้เรียก API นี้ (คั่นด้วยจุลภาคถ้ามีหลายโดเมน)</td></tr>
+                <tr><td><code>PG_DUMP_PATH</code> (ไม่บังคับ)</td><td>path เต็มของโปรแกรม <code>pg_dump</code> ถ้าไม่ได้อยู่ใน PATH ของระบบ — จำเป็นสำหรับฟีเจอร์สำรองข้อมูลอัตโนมัติ</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Bun โหลดไฟล์ <code>.env</code> ให้อัตโนมัติ ไม่ต้องติดตั้งแพ็กเกจ <code>dotenv</code> เพิ่ม จากนั้นติดตั้งแพ็กเกจ:</p>
+          <pre><code>bun install</code></pre>
+        </div>
+      </section>
+
+      <section class="step" id="import">
+        <div class="step-head"><div class="step-num">5</div><h2>นำเข้าข้อมูลเริ่มต้น</h2></div>
+        <div class="step-body">
+          <p>ฐานข้อมูลที่เพิ่งสร้างยังไม่มีตารางใด ๆ เลย เลือกวิธีนำเข้าข้อมูลให้ตรงกับสถานการณ์:</p>
+
+          <div class="path-card recommended">
+            <h4>กรณี A — มีไฟล์สำรองข้อมูล (.sql) จากระบบที่ใช้งานอยู่แล้ว <span class="badge-recommend">แนะนำ</span></h4>
+            <p>ใช้ตอนย้ายระบบของลูกค้าจริงที่มีข้อมูลอยู่แล้ว ระบบมีฟีเจอร์ "สำรองข้อมูล" ในตัว (ต้องมีสิทธิ์ผู้ดูแลระบบ) ที่สร้างไฟล์ .sql แบบเต็ม (โครงสร้าง + ข้อมูล) เอาไฟล์นั้นมารันกับฐานข้อมูลเปล่าที่เพิ่งสร้างได้เลย:</p>
+            <pre><code>node run_sql.mjs path/to/backup-file.sql</code></pre>
+            <p>หรือใช้ <code>psql</code> โดยตรงถ้ามีในเครื่อง: <code>psql -h &lt;host&gt; -U &lt;user&gt; -d scd_panda -f backup-file.sql</code></p>
+            <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>แนะนำให้ทดสอบขั้นตอนนี้กับฐานข้อมูลทดสอบสักครั้งก่อนใช้งานจริงกับข้อมูลลูกค้า และอย่าลืมคัดลอกไฟล์ <code>src/schema-manifest.json</code> มาจากระบบต้นทางด้วย — backend จะไม่รู้จักตาราง/คอลัมน์ที่เพิ่ง restore ถ้าไม่มีไฟล์นี้</div>
+          </div>
+
+          <div class="path-card">
+            <h4>กรณี B — เริ่มจากศูนย์ด้วยไฟล์ Firebase export เดิม</h4>
+            <p>ใช้ตอนตั้งระบบใหม่ครั้งแรกโดยไม่มีไฟล์สำรอง หน้าเว็บต้องล็อกอินก่อนถึงจะเห็นปุ่มนำเข้าข้อมูล แต่ฐานข้อมูลเปล่ายังไม่มีบัญชีให้ล็อกอิน (ไก่กับไข่) จึงต้องใช้สคริปต์นี้แทนสำหรับครั้งแรกเท่านั้น:</p>
+            <pre><code>bun run scripts/bootstrap-uuid-import.js path/to/firebase-export.json</code></pre>
+            <p>ไฟล์ที่ว่านี้คือไฟล์ export จาก Firebase Console ของระบบเดิม (Realtime Database → ปุ่มจุดสามจุด ⋮ → Export JSON) สคริปต์จะสร้างตารางเองตามข้อมูลในไฟล์ พร้อมเข้ารหัสรหัสผ่านพนักงาน/คนขับให้อัตโนมัติ หลังจากนี้ให้ใช้ปุ่ม "นำเข้าข้อมูล" ในหน้าเว็บสำหรับการนำเข้าเพิ่มเติมในอนาคตแทน</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="step" id="run-backend">
+        <div class="step-head"><div class="step-num">6</div><h2>รัน Backend</h2></div>
+        <div class="step-body">
+          <p>ทดสอบก่อน:</p>
+          <pre><code>bun run dev</code></pre>
+          <p>ทดสอบว่าทำงานถูกต้อง: <code>curl http://localhost:4000/health</code> ควรได้ <code>{"ok":true}</code></p>
+          <p>สำหรับใช้งานจริง ต้องรันด้วย <code>bun run start</code> และทำให้รันค้างไว้ตลอดเวลาแม้ปิด terminal หรือเครื่องรีสตาร์ท:</p>
+          <ul>
+            <li><b>Linux (แนะนำ):</b> <code>pm2 start "bun run start" --name scd-panda-backend</code> หรือสร้างเป็น systemd service</li>
+            <li><b>Windows:</b> ใช้ <a href="https://nssm.cc" target="_blank" rel="noopener">NSSM</a> ห่อคำสั่งเป็น Windows Service หรือใช้ pm2 เช่นกัน</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="step" id="frontend">
+        <div class="step-head"><div class="step-num">7</div><h2>ตั้งค่า Frontend</h2></div>
+        <div class="step-body">
+          <pre><code>cd frontend-scd-panda
+npm install
+cp .env.local.example .env.local</code></pre>
+          <p>แก้ไฟล์ <code>.env.local</code> ให้ชี้ไปที่ backend จริง:</p>
+          <pre><code>REACT_APP_API_URL=https://api.โดเมนลูกค้า.com</code></pre>
+          <div class="note danger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>ค่านี้ถูกฝังเข้าไปในไฟล์ที่ build ออกมาแบบถาวร ถ้าเปลี่ยนที่อยู่ backend ภายหลัง ต้อง <b>build ใหม่ทุกครั้ง</b> แก้แค่ <code>.env.local</code> เฉย ๆ โดยไม่ build ใหม่จะไม่มีผลอะไรเลย</div>
+          <p>อย่าลืมตั้งค่า <code>CORS_ORIGIN</code> ฝั่ง backend ให้ตรงกับโดเมนที่จะ deploy หน้าเว็บนี้ด้วย ไม่งั้นเบราว์เซอร์จะบล็อกการเรียก API ทั้งหมด</p>
+          <p>Build เว็บสำหรับใช้งานจริง:</p>
+          <pre><code>npm run build</code></pre>
+          <p>จะได้โฟลเดอร์ <code>build/</code> ที่มีไฟล์ static ล้วน พร้อมเอาไปวางบนเว็บเซิร์ฟเวอร์ใดก็ได้ (คู่มือใช้งาน <code>/manual.html</code> ติดไปด้วยอัตโนมัติ อยู่ใน <code>public/</code> อยู่แล้ว ไม่ต้องทำอะไรเพิ่ม)</p>
+        </div>
+      </section>
+
+      <section class="step" id="deploy-frontend">
+        <div class="step-head"><div class="step-num">8</div><h2>Deploy โฟลเดอร์ build/</h2></div>
+        <div class="step-body">
+          <div class="path-card recommended">
+            <h4>วิธีที่ 1 — เว็บเซิร์ฟเวอร์ทั่วไป (nginx/Apache/IIS) <span class="badge-recommend">แนะนำสำหรับเซิร์ฟเวอร์ลูกค้าเอง</span></h4>
+            <p>คัดลอกเนื้อหาในโฟลเดอร์ <code>build/</code> ไปไว้ในโฟลเดอร์ที่เว็บเซิร์ฟเวอร์ชี้ถึง แล้วตั้งค่าให้ <b>rewrite ทุก path ที่ไม่ตรงกับไฟล์จริงไปที่ <code>index.html</code></b> (จำเป็นเพราะเป็น SPA) ตัวอย่าง nginx:</p>
+            <pre><code>server {
+  listen 80;
+  server_name app.โดเมนลูกค้า.com;
+  root /var/www/html;
+  index index.html;
+
+  location / {
+    try_files $uri /index.html;
+  }
+}</code></pre>
+            <p>แนะนำให้ตั้ง HTTPS ผ่าน nginx (เช่นด้วย Let's Encrypt/Certbot) แทนการเปิด HTTP เปล่า ๆ ออกอินเทอร์เน็ต</p>
+          </div>
+          <div class="path-card">
+            <h4>วิธีที่ 2 — Firebase Hosting</h4>
+            <p>repo มีไฟล์ <code>firebase.json</code>/<code>.firebaserc</code> เตรียมไว้แล้ว</p>
+            <div class="note danger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg><code>.firebaserc</code> ปัจจุบันชี้ไปที่โปรเจกต์ Firebase เดิมของผู้พัฒนา — <b>ห้ามใช้ค่านี้ต่อกับลูกค้ารายใหม่โดยตรง</b> จะ deploy ทับเว็บเดิมโดยไม่ตั้งใจ ต้องสร้างโปรเจกต์ Firebase ของลูกค้าเองก่อนเสมอ</div>
+            <pre><code>npm install -g firebase-tools
+firebase login
+firebase use --add   # เลือกโปรเจกต์ Firebase ใหม่ของลูกค้า
+firebase deploy --only hosting</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="step" id="security">
+        <div class="step-head"><div class="step-num">9</div><h2>เช็กลิสต์ความปลอดภัยก่อนส่งมอบจริง</h2></div>
+        <div class="step-body">
+          <p>ติ๊กเมื่อทำแล้ว (ติ๊กจะจำไว้เฉพาะตอนเปิดหน้านี้ในเบราว์เซอร์ ปิดคู่มือแล้วรายการจะรีเซ็ต):</p>
+          <div class="checklist">
+            <label><input type="checkbox"><span>เปลี่ยน <code>JWT_SECRET</code> เป็นค่าสุ่มใหม่เฉพาะของระบบนี้ (ไม่ใช้ค่าตัวอย่าง/ค่าเดิมซ้ำกับระบบอื่น)</span></label>
+            <label><input type="checkbox"><span>ตั้งค่า <code>CORS_ORIGIN</code> ให้ตรงกับโดเมนจริงของ frontend เท่านั้น</span></label>
+            <label><input type="checkbox"><span>สร้าง role ฐานข้อมูลเฉพาะสำหรับแอป แทนการใช้ <code>postgres</code> superuser ตรง ๆ</span></label>
+            <label><input type="checkbox"><span>เปิดใช้งาน HTTPS ผ่าน reverse proxy หน้าเซิร์ฟเวอร์ ไม่เปิด backend แบบ HTTP ตรง ๆ ออกอินเทอร์เน็ต</span></label>
+            <label><input type="checkbox"><span>ล็อกอินด้วยบัญชีผู้ดูแลระบบ แล้วเปลี่ยนรหัสผ่านหน้า "สำรองข้อมูล" จากค่าเริ่มต้น <code>admin</code> ทันที</span></label>
+            <label><input type="checkbox"><span>ถ้าใช้ Firebase Hosting ตรวจสอบว่าเปลี่ยนไปใช้โปรเจกต์ Firebase ของลูกค้าเองแล้ว ไม่ใช่โปรเจกต์เดิม</span></label>
+            <label><input type="checkbox"><span>ทดสอบล็อกอินจริง และทดสอบเปิดแต่ละเมนูตามสิทธิ์อย่างน้อย 1 บัญชีต่อสิทธิ์</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="step" id="maintenance">
+        <div class="step-head"><div class="step-num">10</div><h2>ดูแลรักษาต่อเนื่องหลังส่งมอบ</h2></div>
+        <div class="step-body">
+          <ul>
+            <li><b>สำรองข้อมูลอัตโนมัติ</b> — ระบบสำรองข้อมูลให้เองทุกวันตี 1 (เก็บย้อนหลัง 30 วัน) ทำงานทันทีที่เซิร์ฟเวอร์ backend รันอยู่ ไม่ต้องตั้งค่าเพิ่ม แค่ต้องแน่ใจว่าเซิร์ฟเวอร์รันค้างไว้ตลอดเวลาจริง (ดูขั้นตอนที่ 6)</li>
+            <li><b>อัปเดตโค้ดในอนาคต</b> — <code>git pull</code> ที่ repo ที่เกี่ยวข้อง แล้วรัน <code>bun install</code>/<code>npm install</code> ใหม่ถ้ามีแพ็กเกจเพิ่ม จากนั้น restart backend หรือ build+deploy frontend ใหม่แล้วแต่ฝั่งที่แก้</li>
+            <li><b>ตรวจสอบระบบยังทำงานปกติ</b> — <code>curl &lt;backend-url&gt;/health</code> ควรตอบ <code>{"ok":true}</code> เสมอ</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="step" id="cheatsheet">
+        <div class="step-head"><div class="step-num">11</div><h2>คำสั่งที่ใช้บ่อย (สรุปย่อ)</h2></div>
+        <div class="step-body">
+          <div class="cheat-grid">
+            <div class="cheat-card">
+              <h4>Backend — เริ่มต้นครั้งแรก</h4>
+              <pre><code>bun install
+cp .env.example .env
+# แก้ .env ให้เรียบร้อยก่อน
+bun run scripts/bootstrap-uuid-import.js data.json
+bun run start</code></pre>
+            </div>
+            <div class="cheat-card">
+              <h4>Backend — restore จาก backup</h4>
+              <pre><code>bun install
+cp .env.example .env
+node run_sql.mjs backup.sql
+bun run start</code></pre>
+            </div>
+            <div class="cheat-card">
+              <h4>Frontend — build และ deploy</h4>
+              <pre><code>npm install
+cp .env.local.example .env.local
+# แก้ REACT_APP_API_URL ให้เรียบร้อยก่อน
+npm run build
+# คัดลอก build/ ไปเว็บเซิร์ฟเวอร์</code></pre>
+            </div>
+            <div class="cheat-card">
+              <h4>ตรวจสุขภาพระบบ</h4>
+              <pre><code>curl https://api.โดเมน.com/health
+# ควรได้ {"ok":true}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>
