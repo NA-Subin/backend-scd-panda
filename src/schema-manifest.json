@@ -773,6 +773,11 @@
       {
         "field": "GasStation",
         "column": "gas_station",
+        "type": "UUID"
+      },
+      {
+        "field": "GasStationName",
+        "column": "gas_station_name",
         "type": "TEXT"
       }
     ]
@@ -1402,7 +1407,7 @@
       {
         "field": "Registration",
         "column": "registration",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "SelectedDateInvoice",
@@ -1447,6 +1452,11 @@
       {
         "field": "Group",
         "column": "group",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegistrationName",
+        "column": "registration_name",
         "type": "TEXT"
       }
     ]
@@ -2243,7 +2253,7 @@
       {
         "field": "Driver",
         "column": "driver",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "Insurance",
@@ -2303,6 +2313,11 @@
       {
         "field": "StatusTruck",
         "column": "status_truck",
+        "type": "TEXT"
+      },
+      {
+        "field": "DriverName",
+        "column": "driver_name",
         "type": "TEXT"
       }
     ]

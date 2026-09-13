@@ -60,7 +60,7 @@ const TICKET_NAME_DISCRIMINATOR = {
 const FK_FIELDS = {
   customers: { Company: { target: 'company' } },
   employee_drivers: { Position: { target: 'positions' }, Registration: { target: 'truck_registration' } },
-  employee_officers: { Position: { target: 'positions' } },
+  employee_officers: { Position: { target: 'positions' }, GasStation: { target: 'depot_gas_stations' } },
   inspection: { Employee: { target: 'employee_drivers' }, employee: { target: 'employee_drivers' } },
   invoice: {
     Transport: { target: 'company' },
@@ -88,6 +88,7 @@ const FK_FIELDS = {
     // Misleadingly named in the source data - verified against real content.
     Bank: { target: 'expenseitems' },
     Company: { target: 'companypayment' },
+    Registration: { target: 'truck_registration' },
   },
   tickets: {
     Driver: { target: 'employee_drivers' },
@@ -113,7 +114,7 @@ const FK_FIELDS = {
     Company: { target: 'company' },
   },
   truck_registration_tail: { Company: { target: 'company' } },
-  truck_small: { Company: { target: 'company' } },
+  truck_small: { Company: { target: 'company' }, Driver: { target: 'employee_drivers' } },
   truck_transport: { Company: { target: 'company' } },
   depot_gas_stations: { Stock: { target: 'depot_stock' } },
 };
