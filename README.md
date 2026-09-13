@@ -1,31 +1,185 @@
-# alysia
+# PandaStar Oil — Backend
 
-ElysiaJS (Bun) + PostgreSQL API for the SCD Panda Oil Transport system,
-replacing the Firebase Realtime Database backend used by the frontend.
+ElysiaJS (Bun) + PostgreSQL API สำหรับระบบบริหารจัดการขนส่งน้ำมัน PandaStar Oil
+มาแทนที่ Firebase Realtime Database ที่ระบบเดิมเคยใช้
 
-## Setup
+คู่กับ frontend repo แยกต่างหาก (React + MUI) — ต้องรันทั้งสองส่วนคู่กันเสมอ ดูรายละเอียดฝั่ง
+frontend ได้ที่ README ของ repo นั้น
 
+คู่มือนี้เขียนไว้สำหรับผู้ที่จะ **นำระบบไปติดตั้งบนเครื่อง/เซิร์ฟเวอร์ใหม่** (เช่น ส่งมอบให้ลูกค้า)
+ถ้าต้องการคู่มือการ**ใช้งาน**ระบบ (สำหรับผู้ใช้ทั่วไป แยกตามสิทธิ์) ดูได้ที่หน้า `/manual.html`
+ในตัวเว็บแอปเอง (ลิงก์อยู่ในหน้า "เลือกเมนู" หลังล็อกอิน)
+
+---
+
+## สิ่งที่ต้องมีก่อนเริ่ม (Prerequisites)
+
+| โปรแกรม | ใช้ทำอะไร | ดาวน์โหลด |
+|---|---|---|
+| **Bun** (เวอร์ชันล่าสุด) | รัน backend นี้ | https://bun.sh |
+| **PostgreSQL** (แนะนำ 14 ขึ้นไป — เครื่องที่พัฒนาใช้ 17) | ฐานข้อมูลหลัก | https://www.postgresql.org/download/ |
+| **git** | โคลนโค้ด | https://git-scm.com |
+
+ไม่จำเป็นต้องติดตั้ง Postgres extension เพิ่มเติมใด ๆ (เช่น `pgcrypto`/`uuid-ossp`) —
+ระบบสร้างค่า UUID ฝั่งโค้ด JavaScript เอง ไม่ได้พึ่งฟังก์ชันสร้าง UUID ของฐานข้อมูล
+
+---
+
+## ขั้นตอนที่ 1 — โคลนโค้ด
+
+```bash
+git clone https://github.com/NA-Subin/backend-scd-panda.git
+cd backend-scd-panda
 ```
+
+---
+
+## ขั้นตอนที่ 2 — เตรียมฐานข้อมูล PostgreSQL
+
+ระบบต่อฐานข้อมูลโดยกำหนด `search_path` ไปที่ **schema ชื่อ `scd_panda` โดยเฉพาะ** (ไม่ใช่ schema
+`public` เริ่มต้น) ดังนั้นต้องสร้างทั้งฐานข้อมูลและ schema ก่อนเริ่มใช้งาน:
+
+```sql
+-- เชื่อมต่อด้วย psql หรือเครื่องมือ GUI (pgAdmin ฯลฯ) ก็ได้
+CREATE DATABASE scd_panda;
+
+\c scd_panda
+CREATE SCHEMA IF NOT EXISTS scd_panda;
+```
+
+### (แนะนำสำหรับใช้งานจริง) สร้างบัญชีเฉพาะสำหรับแอป แทนการใช้ superuser `postgres` ตรง ๆ
+
+```sql
+CREATE ROLE scd_panda_app WITH LOGIN PASSWORD 'ตั้งรหัสผ่านที่นี่';
+GRANT ALL ON SCHEMA scd_panda TO scd_panda_app;
+GRANT ALL ON ALL TABLES IN SCHEMA scd_panda TO scd_panda_app;
+-- สำคัญ: ตารางทั้งหมดจะถูกสร้างขึ้นเองตอนนำเข้าข้อมูลครั้งแรก (ขั้นตอนที่ 5)
+-- ซึ่งยังไม่มีอยู่ ณ ตอนนี้ - บรรทัดนี้ทำให้สิทธิ์ครอบคลุมตารางที่จะถูกสร้างขึ้นภายหลังด้วย
+ALTER DEFAULT PRIVILEGES IN SCHEMA scd_panda GRANT ALL ON TABLES TO scd_panda_app;
+```
+
+ถ้าข้ามขั้นตอนนี้ไปก่อน ใช้ `postgres` (superuser) ไปพลาง ๆ ก็ได้ แต่ควรกลับมาทำก่อนใช้งานจริงกับข้อมูลลูกค้า
+
+---
+
+## ขั้นตอนที่ 3 — ตั้งค่าไฟล์ `.env`
+
+```bash
+cp .env.example .env
+```
+
+แล้วแก้ค่าในไฟล์ `.env` ให้ตรงกับเครื่อง/เซิร์ฟเวอร์จริง:
+
+| ตัวแปร | คำอธิบาย |
+|---|---|
+| `PGHOST`, `PGPORT`, `PGDATABASE`, `PGSCHEMA`, `PGUSER`, `PGPASSWORD` | ค่าเชื่อมต่อฐานข้อมูลตามที่สร้างไว้ในขั้นตอนที่ 2 |
+| `JWT_SECRET` | ข้อความลับใช้เซ็นรหัสเข้าสู่ระบบ (JWT) **ต้องตั้งใหม่ทุกครั้งที่ติดตั้งระบบใหม่ ห้ามใช้ค่าตัวอย่าง/ค่าเดิมซ้ำกับระบบอื่น** สร้างค่าสุ่มที่ปลอดภัยได้ด้วยคำสั่ง `openssl rand -hex 32` |
+| `PORT` | พอร์ตที่ backend จะรัน (ค่าเริ่มต้น `4000`) |
+| `CORS_ORIGIN` | โดเมนของ frontend จริงที่อนุญาตให้เรียก API นี้ได้ (คั่นด้วยจุลภาคถ้ามีหลายโดเมน) เช่น `https://app.ลูกค้า.com` |
+| `PG_DUMP_PATH` (ไม่บังคับ) | path เต็มของโปรแกรม `pg_dump` ถ้าไม่ได้อยู่ใน PATH ของระบบ (เช่นบน Windows มักต้องระบุเต็ม เช่น `C:\Program Files\PostgreSQL\17\bin\pg_dump.exe`) — จำเป็นสำหรับฟีเจอร์สำรองข้อมูลอัตโนมัติ |
+
+Bun โหลดไฟล์ `.env` ให้อัตโนมัติ ไม่ต้องติดตั้งแพ็กเกจ `dotenv` เพิ่ม
+
+---
+
+## ขั้นตอนที่ 4 — ติดตั้งแพ็กเกจ
+
+```bash
 bun install
-cp .env.example .env   # fill in real values
-bun run migrate-passwords   # one-time: bcrypt-hash plaintext passwords already in the DB
+```
+
+---
+
+## ขั้นตอนที่ 5 — นำเข้าข้อมูลเริ่มต้น (สำคัญ — เลือกวิธีให้ตรงกับสถานการณ์)
+
+ฐานข้อมูลที่เพิ่งสร้างยังไม่มีตารางใด ๆ เลย ต้องนำเข้าข้อมูลก่อนถึงจะเริ่มใช้งานได้ มี 2 กรณี:
+
+### กรณี A — มีไฟล์สำรองข้อมูล (.sql) จากระบบที่ใช้งานอยู่แล้ว (แนะนำ ใช้ตอนย้ายระบบของลูกค้าจริง)
+
+ระบบมีฟีเจอร์ "สำรองข้อมูล" ในตัว (เมนู "เลือกเมนู" → "สำรองข้อมูล" ต้องมีสิทธิ์ผู้ดูแลระบบ) ที่สร้างไฟล์
+`.sql` แบบเต็ม (โครงสร้างตาราง + ข้อมูลทั้งหมด) ไว้ให้ดาวน์โหลด เอาไฟล์นี้มา "รัน" กับฐานข้อมูลเปล่าที่สร้างไว้
+ในขั้นตอนที่ 2 ได้เลย ไม่ต้องพึ่งขั้นตอนอื่นก่อน:
+
+```bash
+node run_sql.mjs path/to/backup-file.sql
+```
+
+(หรือใช้ `psql` โดยตรงถ้ามีอยู่ในเครื่อง: `psql -h <host> -U <user> -d scd_panda -f backup-file.sql`)
+
+คำสั่งนี้จะสร้างตารางทั้งหมดและใส่ข้อมูลให้ครบในคำสั่งเดียว **แนะนำให้ทดสอบขั้นตอนนี้กับฐานข้อมูลทดสอบ
+สักครั้งก่อน** ใช้งานจริงกับข้อมูลลูกค้า เพื่อความมั่นใจว่าไฟล์สำรองที่ได้มาใช้งานได้ปกติ
+
+หลังรันเสร็จ ให้คัดลอกไฟล์ `src/schema-manifest.json` มาจากระบบต้นทางด้วย (ไฟล์นี้บอกว่าคอลัมน์ไหนในฐานข้อมูล
+ตรงกับชื่อฟิลด์ไหนของแอป) — ถ้าไม่มีไฟล์นี้ backend จะไม่รู้จักตาราง/คอลัมน์ที่เพิ่ง restore เข้าไป
+
+### กรณี B — เริ่มจากศูนย์ด้วยไฟล์ Firebase export เดิม (ตั้งระบบใหม่ครั้งแรก ไม่มีไฟล์สำรอง)
+
+หน้าเว็บต้องล็อกอินก่อนถึงจะเห็นปุ่มนำเข้าข้อมูล แต่ฐานข้อมูลเปล่ายังไม่มีบัญชีให้ล็อกอินเลย (ไก่กับไข่)
+จึงมีสคริปต์แยกไว้สำหรับกรณีนี้โดยเฉพาะ ที่นำเข้าข้อมูลตรงเข้าฐานข้อมูลโดยไม่ผ่านการล็อกอิน:
+
+```bash
+bun run scripts/bootstrap-uuid-import.js path/to/firebase-export.json
+```
+
+ไฟล์ `firebase-export.json` ในที่นี้คือไฟล์ที่ export มาจาก Firebase Console ของระบบเดิม (Realtime Database
+→ ปุ่มจุดสามจุด ⋮ → Export JSON) สคริปต์นี้จะสร้างตารางทั้งหมดให้เองตามข้อมูลในไฟล์ พร้อมเข้ารหัส (hash)
+รหัสผ่านพนักงาน/คนขับที่มากับไฟล์เดิมให้อัตโนมัติ
+
+รันสคริปต์นี้**ครั้งเดียวตอนตั้งระบบใหม่เท่านั้น** หลังจากนั้นให้ใช้ปุ่ม "นำเข้าข้อมูล" ในหน้าเว็บ (ต้องมีสิทธิ์
+ผู้ดูแลระบบ) สำหรับการนำเข้าข้อมูลเพิ่มเติมในอนาคตแทน
+
+---
+
+## ขั้นตอนที่ 6 — รันเซิร์ฟเวอร์
+
+**สำหรับทดสอบ/พัฒนา:**
+
+```bash
 bun run dev
 ```
 
-Bun loads `.env` automatically — no `dotenv` package needed.
+**สำหรับใช้งานจริง:**
 
-## Notes
+```bash
+bun run start
+```
 
-- `.env` currently uses the `postgres` superuser for simplicity. Before any
-  shared/production use, create a scoped role (e.g. `scd_panda_app`) with
-  privileges limited to the `scd_panda` schema and use that instead.
-- `src/schema-manifest.json` maps Postgres columns back to the original
-  Firebase field names (e.g. `bank_id` -> `BankID`). It's generated from the
-  same JSON export used to build the SQL dump — regenerate it if the source
-  data's field set changes.
-- `GET /api/basic-data` is a convenience endpoint mirroring the frontend's
-  `BasicDataProvider` shape. Generic CRUD is available at `/api/:table` and
-  `/api/:table/:rowKey` for all 31 imported tables.
-- Auth (`POST /api/auth/login`) only checks `employee_officers` and
-  `employee_drivers` — `employee_creditors` never had `User`/`Password`
-  columns in the source data, matching the original app's behavior.
+ค่าเริ่มต้นจะรันที่ `http://localhost:4000` (หรือพอร์ตที่ตั้งไว้ใน `.env`) ทดสอบว่าทำงานถูกต้องด้วย
+`curl http://localhost:4000/health` ควรได้ผลลัพธ์ `{"ok":true}`
+
+### ทำให้เซิร์ฟเวอร์รันค้างไว้ตลอด (production)
+
+`bun run start` จะหยุดทำงานทันทีถ้าปิดหน้าต่าง terminal หรือเครื่องรีสตาร์ท ควรใช้ตัวจัดการโปรเซสช่วยให้รัน
+ทนและรีสตาร์ทอัตโนมัติเมื่อ crash:
+
+- **Linux (แนะนำ):** ใช้ [`pm2`](https://pm2.keymetrics.io/) (`pm2 start "bun run start" --name scd-panda-backend`)
+  หรือสร้างเป็น `systemd` service
+- **Windows:** ใช้ [NSSM](https://nssm.cc/) ห่อคำสั่ง `bun run start` เป็น Windows Service หรือใช้ `pm2` เช่นกัน
+  (รองรับ Windows ผ่าน `pm2-windows-startup`)
+
+---
+
+## ความปลอดภัยที่ควรทำก่อนส่งมอบให้ลูกค้าใช้งานจริง
+
+1. เปลี่ยน `JWT_SECRET` เป็นค่าสุ่มใหม่เฉพาะของระบบนี้ (อย่าใช้ค่าตัวอย่างซ้ำ)
+2. ตั้งค่า `CORS_ORIGIN` ให้ตรงกับโดเมนจริงของ frontend เท่านั้น อย่าปล่อยกว้างเกินจำเป็น
+3. สร้าง role ฐานข้อมูลเฉพาะสำหรับแอป แทนการใช้ `postgres` superuser ตรง ๆ (ดูขั้นตอนที่ 2)
+4. เปิดใช้งาน HTTPS ผ่าน reverse proxy (nginx/Caddy) หน้าเซิร์ฟเวอร์นี้ อย่าเปิด backend ตรง ๆ แบบ HTTP
+   ออกอินเทอร์เน็ต
+5. ล็อกอินด้วยบัญชีผู้ดูแลระบบแล้วเปลี่ยน**รหัสผ่านหน้าสำรองข้อมูล**ทันที (ค่าเริ่มต้นคือ `admin` —
+   เปลี่ยนได้ที่หน้า "สำรองข้อมูล" → "เปลี่ยนรหัสผ่านสำหรับเข้าหน้านี้")
+6. ระบบสำรองข้อมูลอัตโนมัติทุกวันตี 1 (เก็บย้อนหลัง 30 วัน) จะเริ่มทำงานเองทันทีที่เซิร์ฟเวอร์รัน — ไม่ต้องตั้งค่า
+   เพิ่ม แค่ให้แน่ใจว่าเซิร์ฟเวอร์รันค้างไว้ตลอดเวลาจริง ๆ (ดูหัวข้อก่อนหน้า)
+
+---
+
+## หมายเหตุทางเทคนิคอื่น ๆ
+
+- `src/schema-manifest.json` แปลงชื่อคอลัมน์ฐานข้อมูลกลับเป็นชื่อฟิลด์แบบ Firebase เดิม (เช่น `bank_id` ↔
+  `BankID`) ไฟล์นี้ถูกสร้าง/อัปเดตอัตโนมัติทุกครั้งที่มีการนำเข้าข้อมูล ไม่ควรแก้ไขเองด้วยมือ
+- `GET /api/basic-data` เป็น endpoint สรุปข้อมูลพื้นฐานให้ frontend เรียกทีเดียว ส่วน CRUD ทั่วไปเรียกผ่าน
+  `/api/:table` และ `/api/:table/:uuid` ได้กับทุกตารางที่นำเข้ามา
+- ระบบล็อกอิน (`POST /api/auth/login`) เช็คจากตาราง `employee_officers` และ `employee_drivers` เท่านั้น —
+  เจ้าหนี้ (`employee_creditors`) ไม่เคยมีช่อง User/Password ในข้อมูลต้นฉบับ ตรงกับพฤติกรรมของระบบเดิม
+- ใช้ `bun run migrate-passwords` ได้เมื่อไรก็ตามที่สงสัยว่ามีรหัสผ่านที่ยังไม่ได้เข้ารหัสหลงเหลืออยู่ในฐานข้อมูล
+  (ปกติไม่จำเป็น เพราะการนำเข้าข้อมูลทุกช่องทางเข้ารหัสให้อัตโนมัติอยู่แล้ว)

@@ -7,7 +7,8 @@
   "scripts": {
     "start": "bun run src/server.js",
     "dev": "bun run --watch src/server.js",
-    "migrate-passwords": "bun run scripts/migrate-passwords.js"
+    "migrate-passwords": "bun run scripts/migrate-passwords.js",
+    "bootstrap-import": "bun run scripts/bootstrap-uuid-import.js"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.1",
