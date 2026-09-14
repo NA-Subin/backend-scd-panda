@@ -8,6 +8,7 @@ import {
 } from '../schema-manifest.js';
 import { rowsToKeyedObject } from '../rowShape.js';
 import { requireAuth, requireAdmin } from '../authMiddleware.js';
+import { PASSWORD_TABLES } from '../hashPasswords.js';
 
 function columnTypeForField(def, field) {
   const col = def.columns.find((c) => c.field === field);
@@ -52,12 +53,25 @@ function toBoundValue(value, type) {
   return value;
 }
 
+// Nothing in the frontend reads a password field back from these generic
+// endpoints (every real login/change-password flow goes through its own
+// dedicated route) - strip it so a bcrypt hash is never handed to every
+// authenticated user just for reading a list they were already allowed to see.
+function redactPassword(table, row) {
+  const passwordField = PASSWORD_TABLES[table];
+  if (!passwordField || !(passwordField in row)) return row;
+  const { [passwordField]: _password, ...rest } = row;
+  return rest;
+}
+
 export const tablesRoutes = new Elysia()
   .get('/api/:table', async ({ params: { table }, headers }) => {
     requireAuth(headers);
     assertValidTable(table);
     const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
-    return rowsToKeyedObject(rows);
+    const keyed = rowsToKeyedObject(rows);
+    for (const uuid of Object.keys(keyed)) keyed[uuid] = redactPassword(table, keyed[uuid]);
+    return keyed;
   })
 
   .get('/api/:table/:uuid', async ({ params: { table, uuid }, headers, set }) => {
@@ -72,7 +86,7 @@ export const tablesRoutes = new Elysia()
       return { error: 'Not found' };
     }
     const { uuid: _uuid, row_key, ...fields } = rows[0];
-    return fields;
+    return redactPassword(table, fields);
   })
 
   .post('/api/:table', async ({ params: { table }, body, headers, set }) => {

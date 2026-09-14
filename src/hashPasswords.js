@@ -8,7 +8,11 @@ import { columnNameForField } from './schema-manifest.js';
 // flow (see routes/auth.js REGISTERABLE_TABLES) - previously left out of
 // this list entirely, which meant a Firebase re-import left its passwords
 // in plaintext, readable by any authenticated user via GET /api/truck_transport.
-const PASSWORD_TABLES = {
+// Exported so routes/tables.js can redact these fields from generic table
+// reads too - no frontend page reads a password field from those responses
+// (confirmed by search), so there's no reason to ever send a hash, even a
+// bcrypt one, to every authenticated user.
+export const PASSWORD_TABLES = {
   employee_officers: 'Password',
   employee_drivers: 'Password',
   truck_transport: 'PassWord',
