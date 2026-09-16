@@ -150,6 +150,46 @@ const FK_FIELDS = {
   depot_gas_stations: { Stock: { target: 'depot_stock' } },
 };
 
+// Thai display names for products.Product_name - see PRODUCT_TH_NAME below.
+const PRODUCT_TH_NAME = {
+  G95: 'แก๊สโซฮอล์ 95',
+  G91: 'แก๊สโซฮอล์ 91',
+  'B7(D)': 'ดีเซล B7',
+  B95: 'เบนซิน 95',
+  B10: 'ดีเซล B10',
+  B20: 'ดีเซล B20',
+  E20: 'แก๊สโซฮอล์ E20',
+  E85: 'แก๊สโซฮอล์ E85',
+  PWD: 'ดีเซลพรีเมียม (Premium Diesel)',
+  ULG95: 'เบนซิน 95 (ULG)',
+};
+
+// tableName -> [{ field, column, type, compute(record) }] - columns that
+// carry real app data but have no source field in the Firebase export at
+// all (unlike FK_FIELDS above, which only reshapes a field that IS present).
+// Without this, a full re-import (which drops and recreates every table
+// purely from the fields present in that import) would silently wipe these
+// back out, since classifyColumns() only ever sees Firebase's own fields.
+const SYNTHETIC_COLUMNS = {
+  products: [
+    {
+      field: 'NameTH',
+      column: 'name_th',
+      type: 'TEXT',
+      compute: (record) => PRODUCT_TH_NAME[record.Product_name] || null,
+    },
+    {
+      field: 'IsActive',
+      column: 'is_active',
+      type: 'BOOLEAN',
+      // New product rows are assumed available for use by default - nothing
+      // in the source data says otherwise, and someone can flip this off
+      // through the app once the product picker actually reads it.
+      compute: () => true,
+    },
+  ],
+};
+
 function toSnakeCase(name) {
   return name
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
@@ -258,6 +298,17 @@ function classifyColumns(tableName, rows) {
     }
     usedNames.add(column);
     columns.push({ field, column, type });
+  }
+
+  for (const synth of SYNTHETIC_COLUMNS[tableName] || []) {
+    let column = synth.column;
+    if (usedNames.has(column)) {
+      let n = 2;
+      while (usedNames.has(`${column}_${n}`)) n++;
+      column = `${column}_${n}`;
+    }
+    usedNames.add(column);
+    columns.push({ field: synth.field, column, type: synth.type, synthetic: synth });
   }
 
   return columns;
@@ -475,6 +526,8 @@ export function buildImportPlan(data) {
               const parsed = matches ? parseIdName(record[col.splitFkNameFor.sourceField]) : null;
               const name = matches ? (parsed ? parsed.name : record[col.splitFkNameFor.sourceField] ?? null) : null;
               vals.push(formatValue(name, 'TEXT'));
+            } else if (col.synthetic) {
+              vals.push(formatValue(col.synthetic.compute(record), col.type));
             } else {
               vals.push(formatValue(record[col.field], col.type));
             }
@@ -684,6 +737,8 @@ export async function buildIncrementalImportPlan(data, pool) {
             const parsed = matches ? parseIdName(record[col.splitFkNameFor.sourceField]) : null;
             const name = matches ? (parsed ? parsed.name : record[col.splitFkNameFor.sourceField] ?? null) : null;
             vals.push(formatValue(name, 'TEXT'));
+          } else if (col.synthetic) {
+            vals.push(formatValue(col.synthetic.compute(record), col.type));
           } else {
             vals.push(formatValue(record[col.field], col.type));
           }
