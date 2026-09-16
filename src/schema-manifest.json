@@ -1190,6 +1190,16 @@
         "field": "SG",
         "column": "sg",
         "type": "NUMERIC"
+      },
+      {
+        "field": "NameTH",
+        "column": "name_th",
+        "type": "TEXT"
+      },
+      {
+        "field": "IsActive",
+        "column": "is_active",
+        "type": "BOOLEAN"
       }
     ]
   },

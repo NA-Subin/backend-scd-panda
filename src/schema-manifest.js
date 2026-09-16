@@ -81,6 +81,7 @@ export const BASIC_DATA_MAP = {
   expenseitems: 'expenseitems',
   quotation: 'quotation',
   inspection: 'inspection',
+  products: 'products',
 };
 
 // The 5 customer categories used to live in separate tables
