@@ -91,11 +91,29 @@ const FK_FIELDS = {
     Registration: { target: 'truck_registration' },
     TicketName: TICKET_NAME_DISCRIMINATOR,
   },
-  quotation: { Company: { target: 'company' }, Employee: { target: 'employee_officers' } },
+  quotation: {
+    Company: { target: 'company' },
+    Employee: { target: 'employee_officers' },
+    // Customer ids are only unique within one of the 5 merged customers
+    // categories (see CUSTOMER_CATEGORIES) - quotation.Truck ("รถใหญ่" /
+    // "รถเล็ก", confirmed the only 2 values that ever appear) says which.
+    Customer: {
+      target: 'customers',
+      discriminatorField: 'Truck',
+      discriminatorMap: {
+        'รถใหญ่': 'bigtruck',
+        'รถเล็ก': 'smalltruck',
+      },
+    },
+  },
   report_financial: {
     Driver: { target: 'employee_drivers' },
     RegHead: { target: 'truck_registration' },
     RegTail: { target: 'truck_registration_tail' },
+    // Which income/deduction category this entry is - confirmed against
+    // real data (deductibleincome.id=1 is literally "เงินเดือน", matching
+    // report_financial rows storing "1:เงินเดือน" here).
+    Name: { target: 'deductibleincome' },
   },
   report_invoice: {
     // Misleadingly named in the source data - verified against real content.

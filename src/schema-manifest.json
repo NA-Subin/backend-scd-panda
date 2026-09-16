@@ -1215,7 +1215,7 @@
       {
         "field": "Customer",
         "column": "customer",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "Date",
@@ -1271,6 +1271,11 @@
         "field": "selectedIndex",
         "column": "selected_index",
         "type": "NUMERIC"
+      },
+      {
+        "field": "CustomerName",
+        "column": "customer_name",
+        "type": "TEXT"
       }
     ]
   },
@@ -1306,7 +1311,7 @@
       {
         "field": "Name",
         "column": "name",
-        "type": "TEXT"
+        "type": "UUID"
       },
       {
         "field": "Note",
@@ -1367,6 +1372,11 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
+      },
+      {
+        "field": "NameName",
+        "column": "name_name",
+        "type": "TEXT"
       }
     ]
   },
