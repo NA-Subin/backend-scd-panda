@@ -409,6 +409,19 @@ export function buildImportPlan(data) {
   const { tables, warnings } = parseFirebaseTables(data);
   const tableNames = Object.keys(tables).sort();
 
+  // A table this database already knows about but that isn't in THIS JSON
+  // at all is left completely untouched below (not dropped, not recreated) -
+  // flag that explicitly rather than let it pass silently, since "ทับข้อมูล
+  // เดิมทั้งหมด" reads as "replace everything" and a JSON missing a table
+  // (an incomplete export, a renamed node) is easy to miss otherwise.
+  const missingTables = Object.keys(getManifest()).filter((t) => !tableNames.includes(t));
+  if (missingTables.length) {
+    warnings.push(
+      `ไฟล์นี้ไม่มีตาราง: ${missingTables.join(', ')} - ตารางเหล่านี้จะไม่ถูกแตะต้อง (ข้อมูลเดิมยังอยู่ครบ) ` +
+        `หากคาดว่าไฟล์นี้ควรมีตารางเหล่านี้ด้วย ควรตรวจสอบไฟล์ต้นฉบับก่อน`
+    );
+  }
+
   // Every row gets its own fresh UUID up front, so (a) it can be used as this
   // row's own primary key value and (b) other rows can reference it as an FK
   // before we've even started building SQL for this table.
@@ -450,7 +463,16 @@ export function buildImportPlan(data) {
     );
   }
 
-  const manifest = {};
+  // Start from the existing manifest (same as buildIncrementalImportPlan),
+  // not {} - a table absent from THIS JSON is never dropped or touched below
+  // (the loop only covers tableNames, i.e. this JSON's own top-level keys),
+  // so its manifest entry must survive too. Starting from {} here used to
+  // wholesale-replace the manifest with only what this import mentioned,
+  // which left every other table's physical data untouched but invisible to
+  // the app - assertValidTable() throws "Unknown table" for it, and since
+  // /api/basic-data fetches every BASIC_DATA_MAP table in one Promise.all,
+  // one missing table there broke the entire basic-data response.
+  const manifest = { ...getManifest() };
   const summary = [];
   const fkNullCounts = {}; // "table.field" -> count of refs that didn't resolve
   const fkConstraints = []; // { table, column, targetTable }
