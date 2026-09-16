@@ -88,7 +88,31 @@ export const authRoutes = new Elysia()
     return { token, user: safeUser, entityType, accessRights };
   })
 
-  .get('/api/auth/me', ({ headers }) => requireAuth(headers))
+  // Confirms the JWT's signature is valid AND the account it names still
+  // exists - a signature check alone isn't enough here, since a token
+  // signed against a previous database (same JWT_SECRET carried over, e.g.
+  // moving to a new server) would otherwise pass forever even though the
+  // account, or the whole table, no longer exists on this database.
+  .get('/api/auth/me', async ({ headers, set }) => {
+    const payload = requireAuth(headers);
+    const table = payload.entityType === 'driver' ? 'employee_drivers' : 'employee_officers';
+    try {
+      const { rows } = await pool.query(`SELECT 1 FROM "${table}" WHERE "id" = $1`, [payload.id]);
+      if (!rows.length) {
+        set.status = 401;
+        return { error: 'Invalid or expired token' };
+      }
+    } catch (err) {
+      // 42P01 = undefined_table - a brand-new/empty database has no such
+      // table yet, which is just as invalid as the account not existing.
+      if (err.code === '42P01') {
+        set.status = 401;
+        return { error: 'Invalid or expired token' };
+      }
+      throw err;
+    }
+    return payload;
+  })
 
   // Verifies the caller's current password against the bcrypt hash and
   // writes a freshly-hashed new one. Identity comes from the JWT, not the
