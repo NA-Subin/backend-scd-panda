@@ -4,3 +4,4 @@ npm-debug.log
 uploads/
 backups/
 backup-access.json
+bootstrap-import-access.json
