@@ -88,12 +88,17 @@
         "field": "lng",
         "column": "lng_2",
         "type": "TEXT"
+      },
+      {
+        "field": "History",
+        "column": "history",
+        "type": "JSONB"
       }
     ]
   },
   "company_history": {
     "primaryKey": "uuid",
-    "rowCount": 2,
+    "rowCount": null,
     "columns": [
       {
         "field": "Company",
@@ -129,7 +134,7 @@
   },
   "companypayment": {
     "primaryKey": "uuid",
-    "rowCount": 375,
+    "rowCount": 377,
     "columns": [
       {
         "field": "Name",
@@ -206,7 +211,7 @@
   },
   "customers": {
     "primaryKey": "uuid",
-    "rowCount": 206,
+    "rowCount": 214,
     "columns": [
       {
         "field": "Address",
@@ -685,6 +690,16 @@
         "type": "TEXT"
       },
       {
+        "field": "RegistrationSmall",
+        "column": "registration_small",
+        "type": "UUID"
+      },
+      {
+        "field": "RegistrationSmallName",
+        "column": "registration_small_name",
+        "type": "TEXT"
+      },
+      {
         "field": "Salary",
         "column": "salary",
         "type": "TEXT"
@@ -722,16 +737,6 @@
       {
         "field": "Phone-",
         "column": "phone-",
-        "type": "TEXT"
-      },
-      {
-        "field": "RegistrationSmall",
-        "column": "registration_small",
-        "type": "UUID"
-      },
-      {
-        "field": "RegistrationSmallName",
-        "column": "registration_small_name",
         "type": "TEXT"
       }
     ]
@@ -916,7 +921,7 @@
   },
   "invoice": {
     "primaryKey": "uuid",
-    "rowCount": 609,
+    "rowCount": 674,
     "columns": [
       {
         "field": "Code",
@@ -972,7 +977,7 @@
   },
   "order": {
     "primaryKey": "uuid",
-    "rowCount": 3866,
+    "rowCount": 4156,
     "columns": [
       {
         "field": "Address",
@@ -1121,11 +1126,6 @@
     "rowCount": 8,
     "columns": [
       {
-        "field": "AdminData",
-        "column": "admin_data",
-        "type": "NUMERIC"
-      },
-      {
         "field": "BasicData",
         "column": "basic_data",
         "type": "NUMERIC"
@@ -1205,7 +1205,7 @@
   },
   "quotation": {
     "primaryKey": "uuid",
-    "rowCount": 162,
+    "rowCount": 172,
     "columns": [
       {
         "field": "Code",
@@ -1226,6 +1226,11 @@
         "field": "Customer",
         "column": "customer",
         "type": "UUID"
+      },
+      {
+        "field": "CustomerName",
+        "column": "customer_name",
+        "type": "TEXT"
       },
       {
         "field": "Date",
@@ -1281,17 +1286,12 @@
         "field": "selectedIndex",
         "column": "selected_index",
         "type": "NUMERIC"
-      },
-      {
-        "field": "CustomerName",
-        "column": "customer_name",
-        "type": "TEXT"
       }
     ]
   },
   "report_financial": {
     "primaryKey": "uuid",
-    "rowCount": 352,
+    "rowCount": 387,
     "columns": [
       {
         "field": "Code",
@@ -1322,6 +1322,11 @@
         "field": "Name",
         "column": "name",
         "type": "UUID"
+      },
+      {
+        "field": "NameName",
+        "column": "name_name",
+        "type": "TEXT"
       },
       {
         "field": "Note",
@@ -1382,17 +1387,12 @@
         "field": "id",
         "column": "id",
         "type": "NUMERIC"
-      },
-      {
-        "field": "NameName",
-        "column": "name_name",
-        "type": "TEXT"
       }
     ]
   },
   "report_invoice": {
     "primaryKey": "uuid",
-    "rowCount": 1999,
+    "rowCount": 2190,
     "columns": [
       {
         "field": "Bank",
@@ -1435,9 +1435,34 @@
         "type": "TEXT"
       },
       {
-        "field": "Registration",
-        "column": "registration",
+        "field": "RegistrationHead",
+        "column": "registration_head",
         "type": "UUID"
+      },
+      {
+        "field": "RegistrationHeadName",
+        "column": "registration_head_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegistrationTail",
+        "column": "registration_tail",
+        "type": "UUID"
+      },
+      {
+        "field": "RegistrationTailName",
+        "column": "registration_tail_name",
+        "type": "TEXT"
+      },
+      {
+        "field": "RegistrationSmall",
+        "column": "registration_small",
+        "type": "UUID"
+      },
+      {
+        "field": "RegistrationSmallName",
+        "column": "registration_small_name",
+        "type": "TEXT"
       },
       {
         "field": "SelectedDateInvoice",
@@ -1483,17 +1508,12 @@
         "field": "Group",
         "column": "group",
         "type": "TEXT"
-      },
-      {
-        "field": "RegistrationName",
-        "column": "registration_name",
-        "type": "TEXT"
       }
     ]
   },
   "tickets": {
     "primaryKey": "uuid",
-    "rowCount": 1958,
+    "rowCount": 2102,
     "columns": [
       {
         "field": "Address",
@@ -1629,7 +1649,7 @@
   },
   "transfermoney": {
     "primaryKey": "uuid",
-    "rowCount": 973,
+    "rowCount": 1064,
     "columns": [
       {
         "field": "BankName",
@@ -1710,22 +1730,12 @@
         "field": "month",
         "column": "month",
         "type": "TEXT"
-      },
-      {
-        "field": "PeriodStart",
-        "column": "period_start",
-        "type": "TEXT"
-      },
-      {
-        "field": "PeriodEnd",
-        "column": "period_end",
-        "type": "TEXT"
       }
     ]
   },
   "trip": {
     "primaryKey": "uuid",
-    "rowCount": 1415,
+    "rowCount": 1539,
     "columns": [
       {
         "field": "CostTrip",
@@ -2286,6 +2296,11 @@
         "type": "UUID"
       },
       {
+        "field": "DriverName",
+        "column": "driver_name",
+        "type": "TEXT"
+      },
+      {
         "field": "Insurance",
         "column": "insurance",
         "type": "TEXT"
@@ -2343,11 +2358,6 @@
       {
         "field": "StatusTruck",
         "column": "status_truck",
-        "type": "TEXT"
-      },
-      {
-        "field": "DriverName",
-        "column": "driver_name",
         "type": "TEXT"
       }
     ]

@@ -53,8 +53,25 @@ const TICKET_NAME_DISCRIMINATOR = {
     'ตั๋วรับจ้างขนส่ง': 'transports',
     'ตั๋วรถใหญ่': 'bigtruck',
     'ตั๋วรถเล็ก': 'smalltruck',
+    // A 6th, genuinely different case from the 5 real customer categories
+    // above: a "blank ticket" has no customer at all by design (confirmed
+    // against real data - every one of these carries TicketName "1:ตั๋วเปล่า",
+    // never a real customer name). Mapped to null (not omitted) so
+    // resolveDiscriminatorCategory below can tell "known to have no target"
+    // apart from "unrecognized value" - only the latter should still warn.
+    'ตั๋วเปล่า': null,
   },
 };
+
+// See the "ตั๋วเปล่า" comment above - a discriminator value can be explicitly
+// mapped to null (known to never have a target row) as well as absent from
+// the map entirely (unrecognized - still worth warning about, could be a
+// genuinely new category). Only the latter counts as unresolved.
+function resolveDiscriminatorCategory(fk, record) {
+  const discValue = record[fk.discriminatorField];
+  const isKnownBlank = discValue in fk.discriminatorMap && fk.discriminatorMap[discValue] == null;
+  return { category: fk.discriminatorMap[discValue], isKnownBlank };
+}
 
 // tableName -> { fieldName -> { target: tableName } }
 const FK_FIELDS = {
@@ -119,7 +136,23 @@ const FK_FIELDS = {
     // Misleadingly named in the source data - verified against real content.
     Bank: { target: 'expenseitems' },
     Company: { target: 'companypayment' },
-    Registration: { target: 'truck_registration' },
+    // Same convention as employee_drivers.Registration above - one Firebase
+    // field, but the id it holds is only meaningful together with TruckType
+    // (a head/tail/small truck's own id ranges overlap, so e.g. "5:..." can
+    // mean a totally different physical truck depending on which). Confirmed
+    // against real data: TruckType "หางรถใหญ่" rows' Registration plate text
+    // matches truck_registration_tail.RegTail, NOT truck_registration.RegHead
+    // for that same numeric id - the un-split version was silently resolving
+    // every "หางรถใหญ่"/"รถเล็ก" row to the wrong physical truck (a
+    // truck_registration row that happened to share the small id, since both
+    // tables' ids start at 1) instead of leaving it unresolved.
+    Registration: {
+      splitByTruckType: {
+        'หัวรถใหญ่': { target: 'truck_registration', field: 'RegistrationHead', column: 'registration_head', nameField: 'RegistrationHeadName', nameColumn: 'registration_head_name' },
+        'หางรถใหญ่': { target: 'truck_registration_tail', field: 'RegistrationTail', column: 'registration_tail', nameField: 'RegistrationTailName', nameColumn: 'registration_tail_name' },
+        'รถเล็ก': { target: 'truck_small', field: 'RegistrationSmall', column: 'registration_small', nameField: 'RegistrationSmallName', nameColumn: 'registration_small_name' },
+      },
+    },
   },
   tickets: {
     Driver: { target: 'employee_drivers' },
@@ -149,6 +182,38 @@ const FK_FIELDS = {
   truck_transport: { Company: { target: 'company' } },
   depot_gas_stations: { Stock: { target: 'depot_stock' } },
 };
+
+// Every table name FK_FIELDS ever points at (target/discriminatorMap/
+// splitByTruckType values, e.g. companypayment, truck_registration) -
+// duplicate "id" values only risk linking a row to the WRONG target when
+// something else can actually reference that id (see duplicateIdTables
+// below). order/tickets/quotation/etc. have no other table pointing at them
+// by id at all - a repeated id there (confirmed against real data: "id" on
+// those tables is a small rotating ticket/trip counter that legitimately
+// repeats hundreds of times, not a unique key) can never misdirect a link,
+// so warning about it would be pure noise with nothing to act on.
+function computeFkTargetTables() {
+  const targets = new Set();
+  for (const fields of Object.values(FK_FIELDS)) {
+    for (const fk of Object.values(fields)) {
+      if (fk.target) targets.add(fk.target);
+      if (fk.splitByTruckType) {
+        for (const dest of Object.values(fk.splitByTruckType)) targets.add(dest.target);
+      }
+    }
+  }
+  return targets;
+}
+const FK_TARGET_TABLES = computeFkTargetTables();
+
+// Tables that intentionally live outside the Firebase-driven import cycle
+// entirely - created once via their own SQL migration (backend/sql/), never
+// populated from a Firebase export, and never dropped/touched by this file
+// (only tables present in THIS JSON's tableNames ever get DROP TABLE'd
+// below). Firebase will never have these nodes, so "this file doesn't have
+// table X" is expected and permanent for them, not a sign anything's wrong -
+// excluded from the missingTables warning below for exactly that reason.
+const NON_FIREBASE_TABLES = new Set(['company_history', 'customer']);
 
 // Thai display names for products.Product_name - see PRODUCT_TH_NAME below.
 const PRODUCT_TH_NAME = {
@@ -325,6 +390,49 @@ function formatValue(v, type) {
 
 const BATCH_SIZE = 500;
 
+// A handful of specific, individually-verified data-entry gaps in the real
+// Firebase source that no general import rule can infer - each one was
+// tracked down by cross-checking the row's OTHER fields (name/address/etc.)
+// against every candidate target until exactly one match was found, the same
+// way a human would. Applied automatically on every import (not just once)
+// since Firebase itself still has the gap - without this, every fresh export
+// re-introduces the exact same "1 reference unresolved" / "id ซ้ำ" warning
+// this was already confirmed to fix. Each entry is defensive: only touches
+// the record if it STILL looks exactly like it did when verified, so if
+// Firebase is ever corrected at the source (or the row is deleted/renamed),
+// this silently becomes a no-op instead of corrupting some other row that
+// happens to reuse the same path.
+const KNOWN_DATA_CORRECTIONS = [
+  {
+    // order/197 (row "No":197, "1:C.ขนุนทอง ก่อสร้าง"): CompanyName/CodeID/
+    // Address are a byte-for-byte match to customers/smalltruck id=1 ("C.
+    // ขนุนทอง ก่อสร้าง") - CustomerType was just never filled in on this one
+    // (already-canceled) row, so TicketName had nothing to resolve against.
+    path: ['order', '197'],
+    field: 'CustomerType',
+    expectedOld: '-',
+    newValue: 'ตั๋วรถเล็ก',
+  },
+  // Duplicate "id" values (e.g. companypayment 343/355/357) are handled by
+  // a general rule now - see deduplicateFkTargetIds below - not listed here
+  // individually.
+];
+
+function applyKnownDataCorrections(data) {
+  for (const { path, field, expectedOld, newValue } of KNOWN_DATA_CORRECTIONS) {
+    const [table, rowKey] = path;
+    const record = data?.[table]?.[rowKey];
+    if (!record || record[field] !== expectedOld) {
+      // Already fixed at the source, row renamed/deleted, or this is a
+      // different export than the one this was verified against - leave it
+      // alone rather than guess.
+      continue;
+    }
+    record[field] = newValue;
+    console.log(`[import] applied known correction: ${table}/${rowKey}.${field} ${JSON.stringify(expectedOld)} -> ${JSON.stringify(newValue)}`);
+  }
+}
+
 // Turns a raw Firebase export into { tableName: [{ rowKey, record }] },
 // applying the same namespace-flattening and 5-way customers merge both
 // buildImportPlan (full replace) and buildIncrementalImportPlan (additive)
@@ -336,6 +444,8 @@ function parseFirebaseTables(data) {
     err.status = 400;
     throw err;
   }
+
+  applyKnownDataCorrections(data);
 
   const tables = {};
   const warnings = [];
@@ -402,7 +512,58 @@ function parseFirebaseTables(data) {
     throw err;
   }
 
+  deduplicateFkTargetIds(tables);
+
   return { tables, warnings };
+}
+
+// A duplicate "id" within a table isn't hypothetical - confirmed in the real
+// source data (e.g. companypayment) - and left alone it means whichever row
+// FK resolution processes LAST always wins, silently making every earlier
+// row sharing that id unreachable as a target. Instead of just warning,
+// resolve it outright: the row Firebase key order puts FIRST keeps its
+// original id, and anything after it sharing that id gets reassigned to a
+// fresh one past the table's current highest id, so every row stays
+// independently reachable and no manual decision is needed. Object key
+// order for these integer-like Firebase keys ("342", "343", ...) is always
+// ascending numeric per the JS spec, so "first" here matches "the row
+// Firebase actually created first" for every table this has been checked
+// against.
+//
+// Only applied to FK_TARGET_TABLES - order/tickets/etc. reuse "id" as a
+// small rotating ticket/trip counter BY DESIGN (confirmed against real data:
+// id=0 alone repeats 1000+ times there), and nothing ever references those
+// tables by id, so reassigning one would invent a display number that never
+// existed for zero benefit. "customers" is scoped per Category, matching
+// CUSTOMER_CATEGORIES - ids there are only unique within one category, not
+// across all 5.
+function deduplicateFkTargetIds(tables) {
+  for (const [table, rows] of Object.entries(tables)) {
+    if (!FK_TARGET_TABLES.has(table)) continue;
+    const isCustomers = table === 'customers';
+
+    const seenByScope = {}; // scope -> Set of ids already claimed
+    const nextFreshIdByScope = {}; // scope -> next id past the ORIGINAL max
+    for (const { record } of rows) {
+      if (typeof record.id !== 'number') continue;
+      const scope = isCustomers ? record.Category : '_';
+      if (!(scope in nextFreshIdByScope) || record.id >= nextFreshIdByScope[scope]) {
+        nextFreshIdByScope[scope] = record.id + 1;
+      }
+    }
+
+    for (const { record } of rows) {
+      if (typeof record.id !== 'number') continue;
+      const scope = isCustomers ? record.Category : '_';
+      const seen = (seenByScope[scope] ??= new Set());
+      if (seen.has(record.id)) {
+        const freshId = nextFreshIdByScope[scope]++;
+        console.log(`[import] reassigned duplicate id: ${table}${isCustomers ? ` (${scope})` : ''} id ${record.id} -> ${freshId}`);
+        record.id = freshId;
+      }
+      seen.add(record.id);
+    }
+  }
 }
 
 export function buildImportPlan(data) {
@@ -414,7 +575,9 @@ export function buildImportPlan(data) {
   // flag that explicitly rather than let it pass silently, since "ทับข้อมูล
   // เดิมทั้งหมด" reads as "replace everything" and a JSON missing a table
   // (an incomplete export, a renamed node) is easy to miss otherwise.
-  const missingTables = Object.keys(getManifest()).filter((t) => !tableNames.includes(t));
+  const missingTables = Object.keys(getManifest()).filter(
+    (t) => !tableNames.includes(t) && !NON_FIREBASE_TABLES.has(t)
+  );
   if (missingTables.length) {
     warnings.push(
       `ไฟล์นี้ไม่มีตาราง: ${missingTables.join(', ')} - ตารางเหล่านี้จะไม่ถูกแตะต้อง (ข้อมูลเดิมยังอยู่ครบ) ` +
@@ -431,14 +594,10 @@ export function buildImportPlan(data) {
   // Category (a merged table of 5 originally-separate sources) - nested one
   // level deeper there: {category: {id: uuid}}.
   const uuidByTableId = {};
-  // A duplicate "id" within one table (source data has had cases of this,
-  // e.g. companypayment) means the LAST row with that id silently wins every
-  // "id:name" FK resolution below - earlier rows sharing the id become
-  // unreachable as an FK target. Can't fix this without a business-rule
-  // decision (which row was actually meant), so at minimum warn loudly
-  // instead of resolving to a possibly-wrong row with no indication anything
-  // was ambiguous.
-  const duplicateIdTables = new Set();
+  // A duplicate "id" within an FK_TARGET_TABLES table is already resolved by
+  // deduplicateFkTargetIds in parseFirebaseTables above (every row is
+  // guaranteed independently reachable by the time this runs), so nothing
+  // left to detect or warn about here.
   for (const [table, rows] of Object.entries(tables)) {
     uuidByTableRowKey[table] = {};
     uuidByTableId[table] = {};
@@ -447,20 +606,11 @@ export function buildImportPlan(data) {
       uuidByTableRowKey[table][rowKey] = uuid;
       if (typeof record.id !== 'number') continue;
       if (table === 'customers') {
-        const byCategory = (uuidByTableId[table][record.Category] ??= {});
-        if (record.id in byCategory) duplicateIdTables.add(`${table} (${record.Category})`);
-        byCategory[record.id] = uuid;
+        (uuidByTableId[table][record.Category] ??= {})[record.id] = uuid;
       } else {
-        if (record.id in uuidByTableId[table]) duplicateIdTables.add(table);
         uuidByTableId[table][record.id] = uuid;
       }
     }
-  }
-  for (const label of duplicateIdTables) {
-    warnings.push(
-      `ตาราง "${label}" มีค่า id ซ้ำกันในข้อมูลต้นฉบับ - แถวที่ตารางอื่นอ้างอิงมาทาง id นี้อาจเชื่อมผิดแถว ` +
-        `(ระบบเชื่อมกับแถวล่าสุดที่เจอ id นี้เสมอ) ควรตรวจสอบ/แก้ไข id ซ้ำในระบบต้นทางก่อน`
-    );
   }
 
   // Start from the existing manifest (same as buildIncrementalImportPlan),
@@ -477,11 +627,15 @@ export function buildImportPlan(data) {
   const fkNullCounts = {}; // "table.field" -> count of refs that didn't resolve
   const fkConstraints = []; // { table, column, targetTable }
   const sqlParts = ["SET client_encoding = 'UTF8';", 'BEGIN;'];
+  let companyHasHistoryColumn = false;
 
   for (const tableName of tableNames) {
     const rows = tables[tableName];
     const columns = classifyColumns(tableName, rows);
     const qTable = quoteIdent(tableName);
+    if (tableName === 'company' && columns.some((c) => c.column === 'history')) {
+      companyHasHistoryColumn = true;
+    }
 
     manifest[tableName] = {
       primaryKey: 'uuid',
@@ -516,13 +670,24 @@ export function buildImportPlan(data) {
             if (col.fk) {
               const parsed = parseIdName(record[col.field]);
               let targetUuid;
+              let isKnownBlank = false;
               if (parsed && col.fk.discriminatorField) {
-                const category = col.fk.discriminatorMap[record[col.fk.discriminatorField]];
-                targetUuid = category ? uuidByTableId[col.fk.target]?.[category]?.[parsed.id] : undefined;
+                const resolved = resolveDiscriminatorCategory(col.fk, record);
+                isKnownBlank = resolved.isKnownBlank;
+                targetUuid = resolved.category ? uuidByTableId[col.fk.target]?.[resolved.category]?.[parsed.id] : undefined;
               } else if (parsed) {
                 targetUuid = uuidByTableId[col.fk.target]?.[parsed.id];
               }
-              if (parsed && !targetUuid) {
+              // parsed.id === 0 is the source app's own "nothing selected"
+              // placeholder (a <select> defaulting to value 0, always paired
+              // with a name like "ไม่มี"/"ว่าง") - every target table's real
+              // ids start at 1 (or, for the couple that legitimately use 0,
+              // targetUuid above already resolved and this branch never
+              // runs), so id 0 can never be a genuine dangling reference.
+              // isKnownBlank is the discriminator-field equivalent (e.g.
+              // "ตั๋วเปล่า"). Only count/warn about ids that used to point at
+              // a real row.
+              if (parsed && !targetUuid && parsed.id !== 0 && !isKnownBlank) {
                 const key = `${tableName}.${col.field}`;
                 fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
               }
@@ -538,7 +703,8 @@ export function buildImportPlan(data) {
               const matches = record.TruckType === col.splitFk.truckType;
               const parsed = matches ? parseIdName(record[col.splitFk.sourceField]) : null;
               const targetUuid = parsed ? uuidByTableId[col.splitFk.target]?.[parsed.id] : undefined;
-              if (matches && parsed && !targetUuid) {
+              // See the id-0 comment above - same "nothing selected" sentinel.
+              if (matches && parsed && !targetUuid && parsed.id !== 0) {
                 const key = `${tableName}.${col.field}`;
                 fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
               }
@@ -572,6 +738,92 @@ export function buildImportPlan(data) {
       `ALTER TABLE ${quoteIdent(fk.table)} ADD CONSTRAINT ${quoteIdent(constraintName)} ` +
         `FOREIGN KEY (${quoteIdent(fk.column)}) REFERENCES ${quoteIdent(fk.targetTable)} ("uuid");`
     );
+  }
+
+  // company_history has a real FK into company("uuid") (see NON_FIREBASE_TABLES
+  // above for why it exists outside the Firebase cycle at all) - and "company"
+  // itself just got unconditionally DROP TABLE ... CASCADE'd above like every
+  // other Firebase table, which silently takes company_history down with it
+  // every single time, not just once. Rebuilding it fresh here, in the same
+  // transaction, right after company's new rows (and their new uuids) exist,
+  // is what actually makes it survive a re-import - a separate one-off
+  // migration run once and never again would just keep losing this table on
+  // every future import forever (confirmed happening in practice). Fully
+  // re-derivable from company.history with no manual matching needed (unlike
+  // trying to reconnect an already-detached company_history row after the
+  // fact, which risks linking a history entry to the wrong company - see the
+  // in-code comment history on this function), so there's nothing to lose by
+  // rebuilding it every time.
+  if (companyHasHistoryColumn) {
+    sqlParts.push('DROP TABLE IF EXISTS "company_history" CASCADE;');
+    sqlParts.push(`CREATE TABLE "company_history" (
+  "uuid" UUID PRIMARY KEY,
+  "row_key" TEXT,
+  "company" UUID REFERENCES "company" ("uuid"),
+  "name" TEXT,
+  "card_id" TEXT,
+  "address" JSONB,
+  "date_start" TEXT,
+  "date_end" TEXT
+);`);
+    sqlParts.push(`INSERT INTO "company_history" ("uuid", "row_key", "company", "name", "card_id", "address", "date_start", "date_end")
+SELECT gen_random_uuid(), gen_random_uuid()::text, c."uuid", entry ->> 'Name', entry ->> 'CardID', entry -> 'Address', entry ->> 'DateStart', entry ->> 'DateEnd'
+FROM "company" c, jsonb_array_elements(c."history") AS entry
+WHERE c."history" IS NOT NULL AND jsonb_typeof(c."history") = 'array';`);
+    manifest.company_history = {
+      primaryKey: 'uuid',
+      rowCount: null, // varies with company.history content, not known ahead of running the SQL above
+      columns: [
+        { field: 'Company', column: 'company', type: 'UUID' },
+        { field: 'Name', column: 'name', type: 'TEXT' },
+        { field: 'CardID', column: 'card_id', type: 'TEXT' },
+        { field: 'Address', column: 'address', type: 'JSONB' },
+        { field: 'DateStart', column: 'date_start', type: 'TEXT' },
+        { field: 'DateEnd', column: 'date_end', type: 'TEXT' },
+      ],
+    };
+  } else {
+    // The export this run genuinely has no history data on any company row
+    // (company still gets dropped above regardless) - nothing to rebuild,
+    // and claiming the table exists in the manifest when it doesn't would
+    // break assertValidTable for every route that reads it.
+    delete manifest.company_history;
+  }
+
+  // customer has no FK into any Firebase table, so it never gets touched by
+  // the DROP TABLE ... CASCADE above - IF NOT EXISTS here is just a one-time
+  // safety net for a database that has never had it created at all yet.
+  sqlParts.push(`CREATE TABLE IF NOT EXISTS "customer" (
+  "uuid" UUID PRIMARY KEY,
+  "row_key" TEXT,
+  "name" TEXT,
+  "address" TEXT,
+  "lat" TEXT,
+  "lng" TEXT,
+  "credit" TEXT,
+  "credit_time" TEXT,
+  "debt" TEXT,
+  "id_card" TEXT,
+  "phone" TEXT,
+  "id" NUMERIC
+);`);
+  if (!manifest.customer) {
+    manifest.customer = {
+      primaryKey: 'uuid',
+      rowCount: 0,
+      columns: [
+        { field: 'Name', column: 'name', type: 'TEXT' },
+        { field: 'Address', column: 'address', type: 'TEXT' },
+        { field: 'Lat', column: 'lat', type: 'TEXT' },
+        { field: 'Lng', column: 'lng', type: 'TEXT' },
+        { field: 'Credit', column: 'credit', type: 'TEXT' },
+        { field: 'CreditTime', column: 'credit_time', type: 'TEXT' },
+        { field: 'Debt', column: 'debt', type: 'TEXT' },
+        { field: 'IdCard', column: 'id_card', type: 'TEXT' },
+        { field: 'Phone', column: 'phone', type: 'TEXT' },
+        { field: 'id', column: 'id', type: 'NUMERIC' },
+      ],
+    };
   }
 
   sqlParts.push('COMMIT;');
@@ -674,28 +926,25 @@ export async function buildIncrementalImportPlan(data, pool) {
     newRowsByTable[tableName] = newRows;
     summary.push({ table: tableName, newRows: newRows.length, skippedExisting: rows.length - newRows.length });
 
+    // Any duplicate "id" among these rows within THIS batch is already
+    // resolved by deduplicateFkTargetIds (runs on every row in
+    // parseFirebaseTables, before newRows is filtered down to just the
+    // ones this table doesn't have yet) - a collision against an id an
+    // EARLIER import already committed to Postgres is a separate, rarer
+    // case this doesn't cover, since resolving that would need reassigning
+    // a live row's id after the fact.
     const idMap = {};
-    let hasDuplicateId = false;
     for (const { rowKey, record } of newRows) {
       const uuid = crypto.randomUUID();
       freshUuidByRowKey[`${tableName} ${rowKey}`] = uuid;
       if (typeof record.id !== 'number') continue;
       if (tableName === 'customers') {
-        const byCategory = (idMap[record.Category] ??= {});
-        if (record.id in byCategory) hasDuplicateId = true;
-        byCategory[record.id] = uuid;
+        (idMap[record.Category] ??= {})[record.id] = uuid;
       } else {
-        if (record.id in idMap) hasDuplicateId = true;
         idMap[record.id] = uuid;
       }
     }
     freshIdMapByTable[tableName] = idMap;
-    if (hasDuplicateId) {
-      warnings.push(
-        `ตาราง "${tableName}" มีค่า id ซ้ำกันในแถวใหม่ที่กำลังนำเข้า - แถวที่ตารางอื่นอ้างอิงมาทาง id นี้อาจ` +
-          `เชื่อมผิดแถว (ระบบเชื่อมกับแถวล่าสุดที่เจอ id นี้เสมอ) ควรตรวจสอบ/แก้ไข id ซ้ำในระบบต้นทางก่อน`
-      );
-    }
   }
 
   // Two known tables FK into each other (employee_drivers.Registration ->
@@ -842,13 +1091,18 @@ export async function buildIncrementalImportPlan(data, pool) {
     const targetFresh = freshIdMapByTable[fk.target] || {};
     const targetExisting = await loadExistingIdMap(fk.target);
     let targetUuid;
+    let isKnownBlank = false;
     if (fk.discriminatorField) {
-      const category = fk.discriminatorMap[record[fk.discriminatorField]];
+      const resolved = resolveDiscriminatorCategory(fk, record);
+      isKnownBlank = resolved.isKnownBlank;
+      const category = resolved.category;
       targetUuid = (category && targetFresh[category]?.[parsed.id]) || (category && targetExisting[category]?.[parsed.id]);
     } else {
       targetUuid = targetFresh[parsed.id] ?? targetExisting[parsed.id];
     }
-    if (!targetUuid) {
+    // See the id-0/isKnownBlank comments in buildImportPlan above - neither
+    // is a genuine dangling reference.
+    if (!targetUuid && parsed.id !== 0 && !isKnownBlank) {
       const key = `${tableName}.${column}`;
       fkNullCounts[key] = (fkNullCounts[key] || 0) + 1;
     }
