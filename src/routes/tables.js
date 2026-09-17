@@ -23,12 +23,14 @@ function columnTypeForField(def, field) {
 // read these tables for every user.
 const ADMIN_ONLY_MODIFY_TABLES = new Set(['positions', 'company', 'company_history']);
 
-// Creating a brand-new position is left open - employee/InsertEmployee.js
-// also creates positions inline while onboarding a new employee, and that
-// path never includes AdminData in its payload, so it can't itself grant
-// admin rights. Company records, on the other hand, are only ever created
-// from Setting.js, so creating those is admin-only too.
-const ADMIN_ONLY_CREATE_TABLES = new Set(['company', 'company_history']);
+// Positions admin-gated on create too, not just modify - assertValidColumns
+// only checks a field NAME is real, not that its value is safe, so any
+// authenticated (non-admin) caller could otherwise POST a brand-new position
+// with e.g. FinancialData/ReportData set to 1 and self-grant it to a fresh
+// account via /api/auth/register, bypassing the modify-side admin gate above
+// entirely. employee/InsertEmployee.js's inline "create a position while
+// onboarding" flow now needs an admin session too as a result.
+const ADMIN_ONLY_CREATE_TABLES = new Set(['company', 'company_history', 'positions']);
 
 function requireAuthForCreate(table, headers) {
   if (ADMIN_ONLY_CREATE_TABLES.has(table)) {
