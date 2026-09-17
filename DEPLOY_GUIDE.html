@@ -340,19 +340,17 @@ git clone https://github.com/NA-Subin/frontend-scd-panda.git</code></pre>
         <div class="step-head"><div class="step-num">3</div><h2>เตรียมฐานข้อมูล PostgreSQL</h2></div>
         <div class="step-body">
           <p>
-            ระบบต่อฐานข้อมูลโดยกำหนด <code>search_path</code> ไปที่ <b>schema ชื่อ <code>scd_panda</code> โดยเฉพาะ</b>
-            (ไม่ใช่ schema <code>public</code> เริ่มต้น) ต้องสร้างทั้งฐานข้อมูลและ schema ก่อน:
+            ระบบต่อฐานข้อมูลโดยกำหนด <code>search_path</code> ไปที่ <b>schema <code>public</code></b> (schema
+            เริ่มต้นของ Postgres) ต้องสร้างแค่ฐานข้อมูลเปล่าไว้ก่อน:
           </p>
-          <pre><code>CREATE DATABASE scd_panda;
-
-\c scd_panda
-CREATE SCHEMA IF NOT EXISTS scd_panda;</code></pre>
+          <pre><code>CREATE DATABASE scd_panda;</code></pre>
+          <div class="note danger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg><b>อย่าสร้าง schema ชื่อ <code>scd_panda</code> แยกต่างหากแล้วใช้ผสมกับ <code>public</code></b> — เคยมีการตั้งค่าแบบนั้นในช่วงแรกของโปรเจกต์ แต่ระบบปัจจุบันต่อ <code>public</code> เท่านั้น schema เก่าที่ค้างอยู่ (ถ้ามีในฐานข้อมูลที่รับช่วงต่อมา) จะไม่ถูกแตะต้องเลย ดูเหมือนมี "ฐานข้อมูลสำรอง" ซ่อนอยู่ทั้งที่จริง ๆ เป็นขยะเก่า สร้างความสับสนตอน debug ได้มาก — ถ้าเจอ schema แปลก ๆ แบบนี้ ให้ตรวจสอบก่อนว่ามีข้อมูลสำคัญค้างอยู่ไหมก่อนลบทิ้ง</div>
           <p><b>แนะนำสำหรับใช้งานจริง</b> — สร้างบัญชีเฉพาะสำหรับแอป แทนการใช้ superuser <code>postgres</code> ตรง ๆ:</p>
           <pre><code>CREATE ROLE scd_panda_app WITH LOGIN PASSWORD 'ตั้งรหัสผ่านที่นี่';
-GRANT ALL ON SCHEMA scd_panda TO scd_panda_app;
-GRANT ALL ON ALL TABLES IN SCHEMA scd_panda TO scd_panda_app;
+GRANT ALL ON SCHEMA public TO scd_panda_app;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO scd_panda_app;
 -- สำคัญ: ตารางทั้งหมดจะถูกสร้างขึ้นเองตอนนำเข้าข้อมูล (ขั้นตอนที่ 5) ซึ่งยังไม่มีอยู่ ณ ตอนนี้
-ALTER DEFAULT PRIVILEGES IN SCHEMA scd_panda GRANT ALL ON TABLES TO scd_panda_app;</code></pre>
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO scd_panda_app;</code></pre>
           <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>ถ้าข้ามขั้นตอนสร้าง role เฉพาะไปก่อน ใช้ <code>postgres</code> ไปพลาง ๆ ก็ได้ แต่ควรกลับมาทำก่อนใช้งานจริงกับข้อมูลลูกค้า</div>
         </div>
       </section>
@@ -414,6 +412,18 @@ cp .env.example .env</code></pre>
             <p>ทำสิ่งเดียวกับกรณี B ในคำสั่งเดียว โดยไม่ต้องล็อกอินผ่านหน้าเว็บเลย:</p>
             <pre><code>bun run scripts/bootstrap-uuid-import.js path/to/firebase-export.json</code></pre>
             <p>สคริปต์จะสร้างตารางเองตามข้อมูลในไฟล์ พร้อมเข้ารหัสรหัสผ่านพนักงาน/คนขับให้อัตโนมัติ รันครั้งเดียวตอนตั้งระบบใหม่เท่านั้น หลังจากนี้ให้ใช้ปุ่ม "นำเข้าข้อมูล" ในหน้าเว็บสำหรับการนำเข้าเพิ่มเติมในอนาคตแทน</p>
+          </div>
+
+          <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div>
+              <b>ผลลัพธ์การนำเข้าปกติควรขึ้น "success" อย่างเดียว ไม่มีคำเตือน</b> ระบบแก้ปัญหาที่พบได้บ่อยในไฟล์
+              Firebase export ให้อัตโนมัติแล้ว: id ที่ชนกันในตารางเดียวกันจะถูกสลับให้ไม่ซ้ำกันเอง (ไม่ใช่แค่เตือน),
+              ค่า placeholder ของแอปเดิมอย่าง <code>"0:ไม่มี"</code> จะไม่ถูกนับเป็นข้อมูลเชื่อมไม่สำเร็จ และตาราง
+              <code>company_history</code>/<code>customer</code> (ไม่ได้มาจาก Firebase) จะถูกสร้าง/อัปเดตให้เองทุกครั้ง
+              โดยไม่ต้องรันสคริปต์ SQL แยกเลย — ถ้าเจอคำเตือนซ้ำ ๆ ทุกครั้งที่ import แปลว่าเป็นปัญหาข้อมูลจริงที่ต้อง
+              ตรวจสอบที่ต้นทาง (Firebase) ไม่ใช่เรื่องปกติที่ต้องเพิกเฉย รายละเอียดเพิ่มเติมดูที่หัวข้อ
+              "พฤติกรรมการนำเข้าข้อมูล" ใน <code>README.md</code>
+            </div>
           </div>
         </div>
       </section>
@@ -491,6 +501,7 @@ firebase deploy --only hosting</code></pre>
             <label><input type="checkbox"><span>ถ้าใช้ Firebase Hosting ตรวจสอบว่าเปลี่ยนไปใช้โปรเจกต์ Firebase ของลูกค้าเองแล้ว ไม่ใช่โปรเจกต์เดิม</span></label>
             <label><input type="checkbox"><span>ทดสอบล็อกอินจริง และทดสอบเปิดแต่ละเมนูตามสิทธิ์อย่างน้อย 1 บัญชีต่อสิทธิ์</span></label>
           </div>
+          <div class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>ไม่ต้องตั้งค่าอะไรเพิ่ม แต่ควรรู้ไว้: การสร้างตำแหน่งใหม่ (ไม่ใช่แค่แก้ตำแหน่งเดิม) ต้องมีสิทธิ์ผู้ดูแลระบบด้วยแล้วเหมือนกัน — ป้องกันไม่ให้ผู้ใช้ทั่วไปสร้างตำแหน่งสิทธิ์สูงเองแล้วสมัครบัญชีใหม่ผูกกับตำแหน่งนั้น</div>
         </div>
       </section>
 

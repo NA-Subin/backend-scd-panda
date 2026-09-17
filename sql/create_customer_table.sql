@@ -1,3 +1,10 @@
+-- SUPERSEDED - kept only for historical reference, no need to run this
+-- manually on a fresh install anymore. buildImportPlan (src/importData.js)
+-- now runs this exact CREATE TABLE IF NOT EXISTS automatically as part of
+-- every full "นำเข้าข้อมูล JSON" import, so the table always exists without
+-- a separate manual step. Genuinely harmless to still run by hand too
+-- (IF NOT EXISTS makes it a no-op either way) - just not necessary.
+--
 -- Creates the "customer" table backing the /customer page (Customer.js,
 -- InsertData.js, UpdateCustomer.js). This is a generic customer list,
 -- separate from the categorized "customers" table (tickets/gasstations/
@@ -11,7 +18,7 @@
 -- Run with:
 --   psql -h localhost -p 5432 -U postgres -d scd_panda -f backend/sql/create_customer_table.sql
 
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 

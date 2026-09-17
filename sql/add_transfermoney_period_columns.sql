@@ -29,7 +29,7 @@
 -- as they've effectively always been (never reliably matchable).
 
 SET client_encoding = 'UTF8';
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 

@@ -16,7 +16,7 @@
 --   psql -h localhost -p 5432 -U postgres -d scd_panda -f backend/sql/split_employee_drivers_registration.sql
 
 SET client_encoding = 'UTF8';
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 

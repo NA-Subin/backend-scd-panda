@@ -27,7 +27,7 @@
 -- perpetually unpaid in the reports.
 
 SET client_encoding = 'UTF8';
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 

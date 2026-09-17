@@ -1,3 +1,15 @@
+-- SUPERSEDED - kept only for historical reference, no need to run this
+-- manually on a fresh install anymore. buildImportPlan (src/importData.js)
+-- now rebuilds company_history automatically from company.history as part
+-- of every full "นำเข้าข้อมูล JSON" import (see the companyHasHistoryColumn
+-- block there) - this table used to get silently dropped every time
+-- (company_history has a real FK into company, and company itself gets
+-- DROP TABLE ... CASCADE'd on every re-import, which cascaded the drop),
+-- which this script alone could never fix since it only ever ran once.
+-- Running this script now would just insert a second, duplicate copy of
+-- each history row (harmless, but pointless) on top of what the import
+-- already rebuilt - safe to skip entirely.
+--
 -- Moves company edit history out of company.history (a JSONB blob embedded
 -- on the company row) into its own company_history table - a proper append-
 -- only log instead of a JSONB array that has to be read-merge-written on

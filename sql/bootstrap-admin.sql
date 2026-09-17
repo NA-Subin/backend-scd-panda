@@ -22,7 +22,7 @@
 -- Run with:
 --   psql -h localhost -p 5432 -U postgres -d scd_panda -f backend/sql/bootstrap-admin.sql
 
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 

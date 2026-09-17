@@ -7,7 +7,7 @@
 -- both in the UI and, more importantly, on the backend routes themselves.
 
 SET client_encoding = 'UTF8';
-SET search_path TO scd_panda, public;
+SET search_path TO public;
 
 BEGIN;
 
