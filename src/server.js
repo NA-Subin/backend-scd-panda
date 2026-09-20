@@ -7,6 +7,7 @@ import { adminRoutes } from './routes/admin.js';
 import { uploadRoutes } from './routes/uploads.js';
 import { backupRoutes } from './routes/backup.js';
 import { bootstrapImportRoutes } from './routes/bootstrapImport.js';
+import { gasStationReportsRoutes } from './routes/gasStationReports.js';
 import { startBackupScheduler } from './backupScheduler.js';
 
 const port = process.env.PORT || 4000;
@@ -31,6 +32,9 @@ const app = new Elysia()
   .use(uploadRoutes)
   .use(backupRoutes)
   .use(bootstrapImportRoutes)
+  // Before tablesRoutes - its generic GET /api/:table/:uuid would otherwise
+  // be a plausible (if wrong) match for this path too.
+  .use(gasStationReportsRoutes)
   .use(tablesRoutes)
   // Firebase export JSON re-imports can be tens of MB; raise Bun's default body limit.
   .listen({ port, maxRequestBodySize: 200 * 1024 * 1024 });
