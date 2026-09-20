@@ -7,9 +7,12 @@ import { requireAuth } from '../authMiddleware.js';
 export const basicDataRoutes = new Elysia().get('/api/basic-data', async ({ headers }) => {
   requireAuth(headers);
 
+  // ORDER BY row_key - see the same comment in routes/tables.js. Without it,
+  // an unordered SELECT's row order isn't guaranteed and differed between
+  // Postgres and the SQL Server backend for identical underlying data.
   const plainResults = await Promise.all(
     Object.entries(BASIC_DATA_MAP).map(async ([key, table]) => {
-      const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
+      const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}" ORDER BY "row_key" ASC`);
       return [key, rowsToKeyedObject(rows)];
     })
   );
@@ -20,7 +23,7 @@ export const basicDataRoutes = new Elysia().get('/api/basic-data', async ({ head
   const categoryRowsByTable = Object.fromEntries(
     await Promise.all(
       [...categoryTables].map(async (table) => {
-        const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}"`);
+        const { rows } = await pool.query(`SELECT ${selectColumnsSql(table)} FROM "${table}" ORDER BY "row_key" ASC`);
         return [table, rows];
       })
     )
